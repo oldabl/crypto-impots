@@ -7,6 +7,6 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main-code.py ./
-COPY statementAllTime.csv ./
+COPY statements .
 
 CMD [ "python", "./main-code.py" ]

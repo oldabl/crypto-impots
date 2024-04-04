@@ -1,7 +1,7 @@
 import ccxt,datetime,sys,currency_converter
 
 exchange = ccxt.binance()
-statementFile = open('statementAllTime.csv', 'r')
+statementFile = open('statements/statementAllTime.csv', 'r')
 lines = statementFile.readlines()
 cryptosOwned = {}
 taxableGainsPerYear = {}
