@@ -13,7 +13,6 @@ class StatementLine:
     self.totalWFees = None
     self.fees = None
     self.desc = None
-    self.infoAsDictionary = None
     self.isStatementLineInvalid = False
     self.gatherAllInformation()
 
@@ -22,6 +21,30 @@ class StatementLine:
 
   def getDate(self):
     return self.date
+
+  def getOpType(self):
+    return self.opType
+
+  def getCrypto(self):
+    return self.crypto
+
+  def getQuantity(self):
+    return self.quantity
+
+  def getSpotCurrency(self):
+    return self.spotCurrency
+
+  def getSpotPrice(self):
+    return self.spotPrice
+
+  def getSubTotal(self):
+    return self.subTotal
+
+  def isBuyLine(self):
+    return self.getOpType() == "Buy"
+
+  def isSellLine(self):
+    return self.getOpType() == "Sell"
 
   def gatherAllInformation(self):
     if not isinstance(self.statementLine, str) or not self.statementLine or self.statementLine == "":

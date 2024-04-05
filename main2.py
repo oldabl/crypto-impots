@@ -1,5 +1,6 @@
 import os
 from StatementHandler import StatementHandler
+from PortfolioHandler import PortfolioHandler
 
 if __name__ == '__main__':
 
@@ -10,3 +11,7 @@ if __name__ == '__main__':
   statement.sortDateAscending()
   
   print(statement.howManyLines())
+  
+  portfolio = PortfolioHandler(statement)
+  portfolio.examinePortfolioForTaxableGains()
+  portfolio.summaryPerYear()

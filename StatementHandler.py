@@ -32,6 +32,13 @@ class StatementHandler:
   def howManyLines(self):
     return len(self.statementLines)
 
+  def getBuyAndSellLines(self):
+    buyAndSellLines = []
+    for line in self.statementLines:
+      if line.isBuyLine() or line.isSellLine():
+        buyAndSellLines.append(line)
+    return buyAndSellLines
+
   def getAllStatementLines(self):
     return self.statementLines
 
