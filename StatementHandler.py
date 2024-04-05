@@ -8,10 +8,10 @@ class StatementHandler:
     self.statementLines = []
     self.checkPath()
     if self.isDir:
-      print("Parse directory " + self.path)
+      print("Examen du dossier " + self.path)
       self.checkForStatementsInDir()
     else: # if it's a file
-      print(" - Look in file "+ self.path)
+      print(" - Relevé disponible : "+ os.path.basename(self.path))
       self.gatherInformationFromStatement()
 
   def __str__(self):

@@ -28,7 +28,9 @@ class PortfolioHandler:
     return portfolioValue
 
   def examinePortfolioForTaxableGains(self):
+    print('Examen des relevés', end='', flush=True)
     for line in self.statement.getAllStatementLines():
+
       if line.isBuyLine():
         crypto = line.getCrypto()
         if crypto not in self.cryptosOwned.keys():
@@ -38,20 +40,21 @@ class PortfolioHandler:
         self.amountInvested = self.amountInvested + line.getSubTotal()
       
       if line.isSellLine():
+        print('.', end='', flush=True)
         crypto = line.getCrypto()
         if crypto == line.getSpotCurrency():
           continue
         date = line.getDate()
-        print("Vente de " + crypto + " en date du", date, ": ")
+        #print("Vente de " + crypto + " en date du", date, ": ")
         valuePortfolio = self.portfolioValue(date)
         percentageSold = line.getSubTotal()/valuePortfolio
         percentagePlusValue = valuePortfolio/self.amountInvested
         taxableGains = (valuePortfolio - self.amountInvested) * percentageSold
-        print("Montant investi à cette date : " + PortfolioHandler.printableAmount(self.amountInvested) + " EUR")
-        print("Valeur du portefeuille à cette date : " + PortfolioHandler.printableAmount(valuePortfolio) + " EUR")
-        print("Valeur en euros vendue : " + PortfolioHandler.printableAmount(line.getSubTotal()) + " EUR")
-        print("Plus value à déclarer : " + PortfolioHandler.printableAmount(taxableGains) + " EUR")
-        print()
+        #print("Montant investi à cette date : " + PortfolioHandler.printableAmount(self.amountInvested) + " EUR")
+        #print("Valeur du portefeuille à cette date : " + PortfolioHandler.printableAmount(valuePortfolio) + " EUR")
+        #print("Valeur en euros vendue : " + PortfolioHandler.printableAmount(line.getSubTotal()) + " EUR")
+        #print("Plus value à déclarer : " + PortfolioHandler.printableAmount(taxableGains) + " EUR")
+        #print()
         if date.year not in self.taxableGainsPerYear.keys():
           self.taxableGainsPerYear[date.year] = 0
         self.taxableGainsPerYear[date.year] = self.taxableGainsPerYear[date.year] + taxableGains
@@ -63,6 +66,7 @@ class PortfolioHandler:
         
         # Remove crypto sold in owned crypto
         self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getQuantity()
+    print()
 
   def summaryPerYear(self):
     print("Résumé par année : ")
