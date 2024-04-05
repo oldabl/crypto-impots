@@ -1,4 +1,4 @@
-import os, datetime
+import datetime
 
 class StatementLine:
   def __init__(self, statementLine):
