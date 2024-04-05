@@ -70,7 +70,8 @@ class StatementLine:
     self.opType, self.crypto = c[1], c[2]
     self.quantity, self.spotCurrency = float(c[3]), c[4]
     self.spotPrice, self.subTotal = float(c[5]), float(c[6])
-    self.totalWFees, self.fees, self.desc = float(c[7]), float(c[8]), c[9]
+    self.totalWFees, self.fees = float(c[7]), float(c[8])
+    self.desc = c[9].rstrip()
     
   def __str__(self):
     if self.isStatementLineValid():
