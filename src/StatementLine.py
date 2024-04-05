@@ -40,6 +40,15 @@ class StatementLine:
   def getSubTotal(self):
     return self.subTotal
 
+  def getTotalWFees(self):
+    return self.totalWFees
+
+  def getFees(self):
+    return self.fees
+
+  def getDesc(self):
+    return self.desc
+
   def isBuyLine(self):
     return self.getOpType() == "Buy"
 
