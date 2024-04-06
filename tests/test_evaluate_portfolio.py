@@ -44,7 +44,7 @@ def test_evaluate_taxable_gains_error_year(mocker):
 
 
 def test_evaluate_taxable_gains_year_full_string_int(mocker):
-  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result)
+  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result[2023])
   
   sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
   sth.uniqueLines()
@@ -58,7 +58,7 @@ def test_evaluate_taxable_gains_year_full_string_int(mocker):
 
 
 def test_evaluate_taxable_gains_year_full(mocker):
-  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result)
+  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result[2024])
   
   sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
   sth.uniqueLines()
