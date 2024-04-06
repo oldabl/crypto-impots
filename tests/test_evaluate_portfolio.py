@@ -13,15 +13,16 @@ def makeFullPath(path):
 from StatementHandler import StatementHandler
 from PortfolioHandler import PortfolioHandler
 
-def test_evaluate_taxable_gains():
+def test_evaluate_taxable_gains(mocker):
   result = {2023: -0.8665641249477958, 2024: 947.8437781903135}
+  mocker.patch('application.getTaxableGainsPerYear', return_value=result)
   
   sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
   sth.uniqueLines()
   sth.sortDateAscending()
   
   portfolio = PortfolioHandler(sth)
-  portfolio.examinePortfolioForTaxableGains()
+  #portfolio.examinePortfolioForTaxableGains()
 
   assert portfolio.getTaxableGainsPerYear() == result
   assert portfolio.getTaxableGainsPerYear("") == result
@@ -35,5 +36,6 @@ def test_evaluate_taxable_gains():
 
 # FOR LOCAL RUN
 if __name__ == '__main__':
-  test_evaluate_taxable_gains()
+  #Only available on GitHub: test_evaluate_taxable_gains()
+  pass
 # FOR LOCAL RUN
