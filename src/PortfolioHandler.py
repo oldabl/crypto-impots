@@ -12,6 +12,22 @@ class PortfolioHandler:
     self.exchange = ccxt.binance()
     self.currencyConverter = currency_converter.CurrencyConverter()
 
+  def getTaxableGainsPerYear(self, year=None):
+    if not year:
+      return self.taxableGainsPerYear
+    yearInt = year
+    try:
+      yearInt = int(year)
+      date = datetime.datetime(yearInt, 1, 1)
+    except (Exception, ValueError):
+      print("'", year, "' is not a year, will return whole summary")
+      return self.taxableGainsPerYear
+    else:
+      if yearInt in self.taxableGainsPerYear.keys():
+        return self.taxableGainsPerYear[yearInt]
+      else:
+        return 0
+
   def portfolioValue(self, date):
     timestamp = int(date.timestamp() * 1000)
     portfolioValue = 0
@@ -68,7 +84,7 @@ class PortfolioHandler:
         self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getQuantity()
     print()
 
-  def summaryPerYear(self):
+  def printSummaryPerYear(self):
     print("Résumé par année : ")
     for year, taxableGain in self.taxableGainsPerYear.items():
       print("- " + str(year) + " : plus-value imposable " + PortfolioHandler.printableAmount(taxableGain) + " EUR")

@@ -11,4 +11,4 @@ if __name__ == '__main__':
   
   portfolio = PortfolioHandler(statement)
   portfolio.examinePortfolioForTaxableGains()
-  portfolio.summaryPerYear()
+  portfolio.printSummaryPerYear()
