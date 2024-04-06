@@ -15,7 +15,7 @@ Tous les relevés doivent être présent, depuis l'ouverture de votre compte Coi
 
 A télécharger ici : https://docs.docker.com/desktop/install/windows-install/
 
-Laissez tous les réglages par défaut.
+Laissez tous les réglages par défaut. Une fois installé, ouvrez Docker en mode Administrateur.
 
 ### 4. Lancez l'examen de vos relevés
 
