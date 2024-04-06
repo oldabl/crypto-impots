@@ -15,7 +15,7 @@ from PortfolioHandler import PortfolioHandler
 
 def test_evaluate_taxable_gains(mocker):
   result = {2023: -0.8665641249477958, 2024: 947.8437781903135}
-  mocker.patch('PortfolioHandler.getTaxableGainsPerYear', return_value=result)
+  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result)
   
   sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
   sth.uniqueLines()
