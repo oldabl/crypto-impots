@@ -3,9 +3,10 @@ from StatementHandler import StatementHandler
 from StatementLine import StatementLine
 
 class PortfolioHandler:
-  
+
   def __init__(self, statement):
     self.statement = statement
+    self.cryptosBought = {}
     self.cryptosOwned = {}
     self.amountInvested = 0
     self.taxableGainsPerYear = {}
@@ -28,10 +29,14 @@ class PortfolioHandler:
       else:
         return 0
 
-  def portfolioValue(self, date):
+  def portfolioValue(self, date, onlyBought=True):
+    cryptoRegistry = self.cryptosOwned
+    if onlyBought:
+      cryptoRegistry = self.cryptosBought
+
     timestamp = int(date.timestamp() * 1000)
     portfolioValue = 0
-    for (cryptoName,amount) in self.cryptosOwned.items():
+    for (cryptoName,amount) in cryptoRegistry.items():
       value = 0
       try:
         response = self.exchange.fetch_ohlcv(cryptoName+'/USDT', '1m', timestamp, 1)
@@ -49,12 +54,18 @@ class PortfolioHandler:
 
       if line.isBuyLine():
         crypto = line.getCrypto()
+        if crypto not in self.cryptosBought.keys():
+          self.cryptosBought[crypto] = 0
+        self.cryptosBought[crypto] = self.cryptosBought[crypto] + line.getQuantity()
+        
+        self.amountInvested = self.amountInvested + line.getSubTotal()
+
+      if line.isInLine():
+        crypto = line.getCrypto()
         if crypto not in self.cryptosOwned.keys():
           self.cryptosOwned[crypto] = 0
         self.cryptosOwned[crypto] = self.cryptosOwned[crypto] + line.getQuantity()
-        
-        self.amountInvested = self.amountInvested + line.getSubTotal()
-      
+
       if line.isSellLine():
         print('.', end='', flush=True)
         crypto = line.getCrypto()
@@ -74,15 +85,31 @@ class PortfolioHandler:
         if date.year not in self.taxableGainsPerYear.keys():
           self.taxableGainsPerYear[date.year] = 0
         self.taxableGainsPerYear[date.year] = self.taxableGainsPerYear[date.year] + taxableGains
-    
-    
+
+
         # Compute information to withdraw sold amount part in invested amount
         toWithDrawFromAmountInvested = line.getSubTotal()/percentagePlusValue
         self.amountInvested = self.amountInvested - toWithDrawFromAmountInvested
-        
+
         # Remove crypto sold in owned crypto
+        self.cryptosBought[crypto] = self.cryptosBought[crypto] - line.getQuantity()
         self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getQuantity()
     print()
+
+  def printSummaryIfSoldRightNow(self):
+    now = datetime.datetime.now() - datetime.timedelta(hours=8)
+    print("Calcul de la plus-value si tout est vendu maintenant...")
+    valuePortfolioOwned = self.portfolioValue(now, False)
+    valuePortfolioBought = self.portfolioValue(now, True)
+
+    percentageSold = 1 # 100%
+    percentagePlusValue = valuePortfolioBought/self.amountInvested
+    taxableGains = (valuePortfolioBought - self.amountInvested) * percentageSold
+
+    print("- Valeur portefeuille de cryptos possédées : " + PortfolioHandler.printableAmount(valuePortfolioOwned))
+    print("- Valeur portefeuille de cryptos achetées : " + PortfolioHandler.printableAmount(valuePortfolioBought))
+    print("- Montant investi à date : " + PortfolioHandler.printableAmount(self.amountInvested))
+    print("- Plus-value à déclarer pour l'année en cours : " + PortfolioHandler.printableAmount(taxableGains))
 
   def printSummaryPerYear(self):
     print("Résumé par année : ")

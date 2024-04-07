@@ -52,8 +52,14 @@ class StatementLine:
   def isBuyLine(self):
     return self.getOpType() == "Buy"
 
+  def isInLine(self):
+    return self.getOpType() in ["Buy", "Staking Income", "Learning Reward"]
+
   def isSellLine(self):
     return self.getOpType() == "Sell"
+
+  def isOutLine(self):
+    return self.getOpType() in ["Sell", "Withdraw", "Send"]
 
   def gatherAllInformation(self):
     if not isinstance(self.statementLine, str) or not self.statementLine or self.statementLine == "":
