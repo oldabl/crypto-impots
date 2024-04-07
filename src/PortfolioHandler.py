@@ -37,7 +37,7 @@ class PortfolioHandler:
     timestamp = int(date.timestamp() * 1000)
     portfolioValue = 0
     for (cryptoName,amount) in cryptoRegistry.items():
-      value = 0
+      value = 0.00
       try:
         response = self.exchange.fetch_ohlcv(cryptoName+'/USDT', '1m', timestamp, 1)
         value = (response[0][1] + response[0][4])/2
@@ -55,7 +55,7 @@ class PortfolioHandler:
       if line.isBuyLine():
         crypto = line.getCrypto()
         if crypto not in self.cryptosBought.keys():
-          self.cryptosBought[crypto] = 0
+          self.cryptosBought[crypto] = 0.00
         self.cryptosBought[crypto] = self.cryptosBought[crypto] + line.getQuantity()
         
         self.amountInvested = self.amountInvested + line.getSubTotal()
@@ -63,7 +63,7 @@ class PortfolioHandler:
       if line.isInLine():
         crypto = line.getCrypto()
         if crypto not in self.cryptosOwned.keys():
-          self.cryptosOwned[crypto] = 0
+          self.cryptosOwned[crypto] = 0.00
         self.cryptosOwned[crypto] = self.cryptosOwned[crypto] + line.getQuantity()
 
       if line.isSellLine():
@@ -83,7 +83,7 @@ class PortfolioHandler:
         #print("Plus value à déclarer : " + PortfolioHandler.printableAmount(taxableGains) + " EUR")
         #print()
         if date.year not in self.taxableGainsPerYear.keys():
-          self.taxableGainsPerYear[date.year] = 0
+          self.taxableGainsPerYear[date.year] = 0.00
         self.taxableGainsPerYear[date.year] = self.taxableGainsPerYear[date.year] + taxableGains
 
 
@@ -112,6 +112,7 @@ class PortfolioHandler:
     print("- Plus-value à déclarer pour l'année en cours : " + PortfolioHandler.printableAmount(taxableGains))
 
   def printSummaryPerYear(self):
+    print(self.cryptosOwned)
     print("Résumé par année : ")
     for year, taxableGain in self.taxableGainsPerYear.items():
       print("- " + str(year) + " : plus-value imposable " + PortfolioHandler.printableAmount(taxableGain) + " EUR")
