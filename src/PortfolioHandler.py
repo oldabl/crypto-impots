@@ -1,56 +1,126 @@
-import ccxt,datetime,sys,currency_converter
-from StatementHandler import StatementHandler
-from StatementLine import StatementLine
+import datetime
+from Exchange import CryptoExchange, CurrencyExchange
+from Defaults import Defaults
 
+# Class responsible for parsing and
+# extracting the information from
+# an exchange platform CSV statement
 class PortfolioHandler:
 
+  # Dictionaries to count cryptos
+  cryptosBought = {}
+  cryptosOwned = {}
+
+  # Track amount invested and gains per year
+  amountInvested = 0
+  taxableGainsPerYear = {}
+
+  # Constructor input:
+  #  - statement: StatementHandler object
   def __init__(self, statement):
     self.statement = statement
-    self.cryptosBought = {}
-    self.cryptosOwned = {}
-    self.amountInvested = 0
-    self.taxableGainsPerYear = {}
-    self.exchange = ccxt.binance()
-    self.currencyConverter = currency_converter.CurrencyConverter()
+    self.populateMissingInformation()
 
-  def getTaxableGainsPerYear(self, year=None):
-    if not year:
-      return self.taxableGainsPerYear
-    yearInt = year
+  # Basic attribute getters
+  def getCryptosBought(self):
+    return self.cryptosBought
+  def getCryptosOwned(self):
+    return self.cryptosOwned
+  def getAmountInvested(self):
+    return self.amountInvested
+  def getTaxableGainsPerYear(self):
+    return self.taxableGainsPerYear
+
+  # Returns: the gain taxable for the year specified
+  # If the year is invalid, return current tax year
+  def getTaxableGainsPerYear(self, year):
+    yearInt = datetime.date.today().year
     try:
       yearInt = int(year)
       date = datetime.datetime(yearInt, 1, 1)
     except (Exception, ValueError):
-      print("'", year, "' is not a year, will return whole summary")
-      return self.taxableGainsPerYear
-    else:
-      if yearInt in self.taxableGainsPerYear.keys():
-        return self.taxableGainsPerYear[yearInt]
-      else:
-        return 0
+      print("'", year, "' is not a year, will return current tax year", yearInt)
 
+    if yearInt in self.taxableGainsPerYear.keys():
+      return self.taxableGainsPerYear[yearInt]
+    else:
+      return 0
+
+  # Role: populate information that might be missing like
+  # - price at which the crypto was acquired in the default currency
+  # - fees in the default currency
+  def populateMissingInformation(self):
+    # Will track the line we look at
+    i = 0
+
+    for line in self.statement.getStatementLines():
+
+      # Flag to know if the statement needs updated
+      change = False
+
+      if not line.getIsInformationComplete():
+
+        change = True
+        cvad = CryptoExchange.getCryptoValueAtDate(line.getCrypto(), line.getDate())
+
+        # If missing default currency fees
+        if line.getFees() == None and line.getCryptoFees() != None:
+          line.setFees(line.getCryptoFees()*cvad)
+
+        # If missing spot price
+        if line.getSpotPrice() == None:
+          line.setSpotPrice(cvad)
+        
+        # If missing different totals
+        if line.getSubTotal() == None:
+          line.setSubTotal(line.getQuantity()*cvad)
+        if line.getTotalWFees() == None:
+          line.setTotalWFees(line.getFees() + line.getSubTotal())
+      
+      # If information is complete but currency is wrong
+      if line.getSpotCurrency() != Defaults.currency:
+        change = True
+        newSubTotal = CurrencyExchange.convertCurrencyAmount(line.getSubTotal(), line.getSpotCurrency(), Defaults.currency, line.getDate())
+        line.setSubTotal(newSubTotal)
+        newFees = CurrencyExchange.convertCurrencyAmount(line.getFees(), line.getSpotCurrency(), Defaults.currency, line.getDate())
+        line.setFees(newFees)
+        newTotalWFees = CurrencyExchange.convertCurrencyAmount(line.getTotalWFees(), line.getSpotCurrency(), Defaults.currency, line.getDate())
+        line.setTotalWFees(newTotalWFees)
+        line.setSpotCurrency(Defaults.currency)
+
+      # Update the statement if needed
+      if change:
+        self.statement.replaceLine(i, line)
+      i = i + 1
+
+  # Returns the whole portfolio value owned
   def portfolioValue(self, date, onlyBought=True):
     cryptoRegistry = self.cryptosOwned
     if onlyBought:
       cryptoRegistry = self.cryptosBought
 
-    timestamp = int(date.timestamp() * 1000)
     portfolioValue = 0
     for (cryptoName,amount) in cryptoRegistry.items():
-      value = 0.00
-      try:
-        response = self.exchange.fetch_ohlcv(cryptoName+'/USDT', '1m', timestamp, 1)
-        value = (response[0][1] + response[0][4])/2
-        value = self.currencyConverter.convert(value, 'USD', 'EUR', date=date)
-      except Exception:
-        #print("ERROR FOR "+ cryptoName)
-        pass
+      value = CryptoExchange.getCryptoValueAtDate(cryptoName, date)
       portfolioValue = portfolioValue + float(value)*amount
     return portfolioValue
 
   def examinePortfolioForTaxableGains(self):
     print('Examen des relevés', end='', flush=True)
-    for line in self.statement.getAllStatementLines():
+    sumBitcoin = 0
+    for line in self.statement.getStatementLines():
+
+      if line.getCrypto() == "BTC":
+        print(line.getDate(), line.getOpType(), line.getQuantity(), line.getCryptoFees())
+        if line.isOutLine(): sumBitcoin = sumBitcoin - line.getQuantity()
+        if line.isInLine(): sumBitcoin = sumBitcoin + line.getQuantity()
+        sumBitcoin = sumBitcoin - line.getCryptoFees() 
+
+      if line.getCryptoFees() != None:
+        crypto = line.getCrypto()
+        if crypto not in self.cryptosOwned.keys():
+          self.cryptosOwned[crypto] = 0.00
+        self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getCryptoFees()
 
       if line.isBuyLine():
         crypto = line.getCrypto()
@@ -95,6 +165,7 @@ class PortfolioHandler:
         self.cryptosBought[crypto] = self.cryptosBought[crypto] - line.getQuantity()
         self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getQuantity()
     print()
+    print("sumBitcoin",sumBitcoin)
 
   def printSummaryIfSoldRightNow(self):
     now = datetime.datetime.now() - datetime.timedelta(hours=8)

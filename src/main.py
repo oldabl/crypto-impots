@@ -18,3 +18,6 @@ if __name__ == '__main__':
 
   print()
   portfolio.printSummaryIfSoldRightNow()
+
+  print(portfolio.getCryptosOwned())
+  print(portfolio.getCryptosBought())
