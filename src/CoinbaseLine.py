@@ -14,6 +14,11 @@ class CoinbaseLine(PlatformLine):
               'Fees and/or Spread',
               'Notes']
 
+  # To set the line type before calling parent
+  def __init__(self, textStatementLine, previousStatementLine=None):
+    self.lineType = "Coinbase"
+    super().__init__(textStatementLine, previousStatementLine)
+
   # Role: try to extract if line matches Coinbase statement
   # 0: Timestamp  1: Transaction Type  2: Asset
   # 3: Quantity Transacted  4: Price Currency
@@ -50,3 +55,20 @@ class CoinbaseLine(PlatformLine):
     # If no error occurred
     self.setEverythingValid()
     return True
+
+  # Human readable class functions
+  def __str__(self):
+    if self.isFormatValid():
+      return str({
+                  'date': self.date.strftime("%Y-%m-%d %H:%M:%S"),
+                  'opType': self.opType,
+                  'crypto': self.crypto,
+                  'quantity': self.quantity,
+                  'spotCurrency': self.spotCurrency,
+                  'spotPrice': self.spotPrice,
+                  'subTotal': self.subTotal,
+                  'fees': self.fees,
+                  'totalWFees': self.totalWFees,
+                  'lineType': self.lineType
+                })
+    return "Invalid statement line"

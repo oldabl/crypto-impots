@@ -16,7 +16,9 @@ class PlatformLine:
   quantity = spotCurrency = None
   spotPrice = subTotal = None
   fees = None
-  cryptoFees = 0.0
+
+  # Will store the subclass type
+  lineType = None
 
   # For debug purposes, will store raw data
   rawData = {}
@@ -38,7 +40,7 @@ class PlatformLine:
   def isFormatValid(self):
     return self.isLineFormatValid
   def isInformationComplete(self):
-    return self.isInformationComplete
+    return self.isLineInformationComplete
   def getDate(self):
     return self.date
   def getOpType(self):
@@ -55,12 +57,10 @@ class PlatformLine:
     return self.subTotal
   def getFees(self):
     return self.fees
-  def getCryptoFees(self):
-    return self.cryptoFees
   def getLineOptions(self):
     return self.lineOptions
-  def getIsInformationComplete(self):
-    return self.isInformationComplete
+  def getLineType(self):
+    return self.lineType
   def getRawData(self):
     return self.rawData
 
@@ -139,10 +139,8 @@ class PlatformLine:
                   'spotCurrency': self.spotCurrency,
                   'spotPrice': self.spotPrice,
                   'subTotal': self.subTotal,
-                  'totalWFees': self.totalWFees,
                   'fees': self.fees,
-                  'cryptoFees': self.cryptoFees,
-                  'lineType': type(self)
+                  'lineType': self.lineType
                 })
     return "Invalid statement line"
   def __repr__(self):

@@ -58,7 +58,7 @@ class PortfolioHandler:
       # Flag to know if the statement needs updated
       change = False
 
-      if not line.getIsInformationComplete():
+      if not line.isInformationComplete():
 
         change = True
         cvad = CryptoExchange.getCryptoValueAtDate(line.getCrypto(), line.getDate())
@@ -74,8 +74,6 @@ class PortfolioHandler:
         # If missing different totals
         if line.getSubTotal() == None:
           line.setSubTotal(line.getQuantity()*cvad)
-        if line.getTotalWFees() == None:
-          line.setTotalWFees(line.getFees() + line.getSubTotal())
       
       # If information is complete but currency is wrong
       if line.getSpotCurrency() != Defaults.currency:
@@ -84,8 +82,6 @@ class PortfolioHandler:
         line.setSubTotal(newSubTotal)
         newFees = CurrencyExchange.convertCurrencyAmount(line.getFees(), line.getSpotCurrency(), Defaults.currency, line.getDate())
         line.setFees(newFees)
-        newTotalWFees = CurrencyExchange.convertCurrencyAmount(line.getTotalWFees(), line.getSpotCurrency(), Defaults.currency, line.getDate())
-        line.setTotalWFees(newTotalWFees)
         line.setSpotCurrency(Defaults.currency)
 
       # Update the statement if needed
@@ -111,12 +107,11 @@ class PortfolioHandler:
     for line in self.statement.getStatementLines():
 
       if line.getCrypto() == "BTC":
-        print(line.getDate(), line.getOpType(), line.getQuantity(), line.getCryptoFees())
         if line.isOutLine(): sumBitcoin = sumBitcoin - line.getQuantity()
         if line.isInLine(): sumBitcoin = sumBitcoin + line.getQuantity()
-        sumBitcoin = sumBitcoin - line.getCryptoFees() 
+        if line.getLineType() == "Kraken": sumBitcoin = sumBitcoin - line.getCryptoFees() 
 
-      if line.getCryptoFees() != None:
+      if line.getLineType() == "Kraken" and line.getCryptoFees() != None:
         crypto = line.getCrypto()
         if crypto not in self.cryptosOwned.keys():
           self.cryptosOwned[crypto] = 0.00

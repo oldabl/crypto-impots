@@ -90,6 +90,7 @@ class StatementHandler:
     with open(self.path, 'r') as f:
       lines = f.readlines()
       previousLine = None
+      
 
       # Go through all lines...
       for line in lines:
@@ -103,6 +104,7 @@ class StatementHandler:
 
             # Save current line for next loop iteration
             previousLine = statementLine
+            break
 
   # Role: sort the list of lines by ascending date
   def sortDateAscending(self):

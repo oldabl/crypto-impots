@@ -15,6 +15,29 @@ class KrakenLine(PlatformLine):
               'fee',
               'balance']
 
+  transactionId = None
+  asset = None
+  type = None
+  amount = None
+  cryptoFees = 0.0
+
+  # To set the line type before calling parent
+  def __init__(self, textStatementLine, previousStatementLine=None):
+    self.lineType = "Kraken"
+    super().__init__(textStatementLine, previousStatementLine)
+
+  # Basic attribute getters
+  def getTransactionId(self):
+    return self.transactionId
+  def getType(self):
+    return self.type
+  def getAmount(self):
+    return self.amount
+  def getAsset(self):
+    return self.asset
+  def getCryptoFees(self):
+    return self.cryptoFees
+
   # Role: try to extract if line matches Kraken statement
   # 0: txid  1: refid  2: time
   # 3: type  4: subtype
@@ -46,26 +69,28 @@ class KrakenLine(PlatformLine):
       if c[0] == "": return False
 
       self.date = datetime.datetime.strptime(c[2], "%Y-%m-%d %H:%M:%S")
+      self.transactionId = c[1]
+      self.type = str(c[3])
+      self.asset = str(c[6])
+      self.amount = abs(float(c[7]))
+      self.isLineFormatValid = True
 
       # If crypto was bought
       #  (previous and current line are linked)
       if (self.previousStatementLine and
-          c[3] in ["receive", "spend"] and
-          self.previousStatementLine.getcpre[3] in ["receive", "spend"] and
-          c[1] == cpre[1]):
-        print(cpre[3])
-        print("WITH PREVIOUS LINE")
+          self.type in ["receive", "spend"] and
+          self.previousStatementLine.getTransactionId() == self.transactionId and
+          self.previousStatementLine.getType() in ["spend", "receive"]):
         self.opType = "Buy"
         self.crypto = c[6]
         if self.crypto[0] == 'X': self.crypto = c[6][1:]
         if self.crypto == "XBT" : self.crypto = "BTC"
         self.quantity = abs(float(c[7]))
-        self.spotCurrency = cpre[6].split('.')[0]
-        self.subTotal = abs(float(cpre[7]))
-        self.spotPrice = self.subTotal/abs(float(c[7])) # Estimated
-        self.fees = abs(float(c[8])) + abs(float(cpre[8]))
-        self.totalWFees = self.subTotal + self.fees
-        self.desc = c[1]
+        self.spotCurrency = self.previousStatementLine.getAsset().split('.')[0]
+        self.subTotal = abs(float(self.previousStatementLine.getAmount()))
+        self.spotPrice = self.subTotal/self.amount # Estimated
+        self.fees = abs(float(self.previousStatementLine.getRawData()['fee']))
+        self.isLineInformationComplete = True
       # If deposit not into Kraken EUR hold, count it as Buy
       elif c[3] == "deposit" and not "HOLD" in c[6]:
         self.opType = "Buy"
@@ -77,9 +102,6 @@ class KrakenLine(PlatformLine):
         self.subTotal = None
         self.spotPrice = None
         self.cryptoFees = abs(float(c[8]))
-        self.totalWFees = None
-        self.desc = c[1]
-        self.setInformationComplete(False)
       # If withdrawal from crypto account
       elif c[3] == "withdrawal":
         self.opType = "Send"
@@ -93,13 +115,28 @@ class KrakenLine(PlatformLine):
         self.cryptoFees = abs(float(c[8]))
         self.totalWFees = None
         self.desc = c[1]
-        self.setInformationComplete(False)
-      else:
-        return False
-    except Exception:
+    except Exception as e:
+      # print(e)
       self.setNothingValid()
       return False # If failed to parse properly line
 
     # If no error occured
     self.setEverythingValid()
     return True
+
+  # Human readable class functions
+  def __str__(self):
+    if self.isFormatValid():
+      return str({
+                  'date': self.date.strftime("%Y-%m-%d %H:%M:%S"),
+                  'opType': self.opType,
+                  'crypto': self.crypto,
+                  'quantity': self.quantity,
+                  'spotCurrency': self.spotCurrency,
+                  'spotPrice': self.spotPrice,
+                  'subTotal': self.subTotal,
+                  'fees': self.fees,
+                  'cryptoFees': self.cryptoFees,
+                  'lineType': self.lineType
+                })
+    return "Invalid statement line"

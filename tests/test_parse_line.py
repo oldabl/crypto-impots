@@ -32,7 +32,6 @@ def test_parse_coinbase_line():
   assert stl.getSpotCurrency() == spot_price_curr
   assert stl.getSpotPrice() == float(spot_price_at_trans)
   assert stl.getSubTotal() == float(subtotal)
-  assert stl.getTotalWFees() == float(total_with_fees)
   assert stl.getFees() == float(fees)
   assert stl.getDesc() == notes
 
