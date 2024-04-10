@@ -1,4 +1,4 @@
-import os
+import os, logging
 from Defaults import Defaults
 from KrakenLine import KrakenLine
 from CoinbaseLine import CoinbaseLine
@@ -23,9 +23,11 @@ class StatementHandler:
     self.checkPath()
 
     if self.isDir: # Path is directory, we look inside
+      logging.info("Browse folder %s", self.path)
       print("Examen du dossier " + self.path)
       self.checkForStatementsInDir()
     else: # Path is a file, we examine the file
+      logging.info("Parse file %s", self.path)
       print(" - Relevé disponible : "+ os.path.basename(self.path))
       self.gatherInformationFromStatement()
 
@@ -67,6 +69,7 @@ class StatementHandler:
 
   # Role: raise error if path given is incorrect
   def errorPathIncorrect(self):
+    logging.error("Incorrect folder path %s", self.path)
     raise Exception("Folder path given is incorrect: " + self.path)
 
   # Role: browse folder looking for files and folders
@@ -78,6 +81,7 @@ class StatementHandler:
     for filename in os.listdir(self.path):
       # Add new paths found to list of statement lines
       newStatement = StatementHandler(os.path.join(self.path, filename))
+      logging.debug("Add new statement line to list")
       self.statementLines = self.statementLines + newStatement.getStatementLines()
 
   # Role: gather all information from statement file
@@ -95,11 +99,14 @@ class StatementHandler:
       # Go through all lines...
       for line in lines:
         # ... and send them for analysis
-        for option in Defaults.platformsCompatible:
+        for option in Defaults.COMPATIBLE_PLATFORMS:
+          logging.debug("Check if line from %s", option)
           statementLine = eval(option+"Line")(line, previousLine)
 
           # If line is valid, add it to list
           if statementLine.isFormatValid():
+            logging.info("Line is valid from %s", option)
+            logging.debug(statementLine)
             self.statementLines.append(statementLine)
 
             # Save current line for next loop iteration

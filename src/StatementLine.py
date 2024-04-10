@@ -1,3 +1,5 @@
+import logging
+from Defaults import Defaults
 
 # Class responsible for extracting and
 # holding the information of a line from
@@ -9,7 +11,7 @@
 # - crypto: crypto symbol (BTC, DOGE, etc...)
 # spotCurrency: EUR or USD
 
-class PlatformLine:
+class StatementLine:
 
   # Attributes that class will attempt to extract
   date = opType = crypto = None
@@ -33,6 +35,7 @@ class PlatformLine:
   def __init__(self, textStatementLine, previousStatementLine=None):
     self.textStatementLine = textStatementLine.strip()
     self.previousStatementLine = previousStatementLine
+    logging.debug(self.textStatementLine)
     # Immediate call to extract information
     self.extractInformation()
 

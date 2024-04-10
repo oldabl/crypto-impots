@@ -1,7 +1,8 @@
-import datetime
-from PlatformLine import PlatformLine
+import datetime, logging
+from Defaults import Defaults
+from StatementLine import StatementLine
 
-class CoinbaseLine(PlatformLine):
+class CoinbaseLine(StatementLine):
 
   listData = ['Timestamp',
               'Transaction Type',
@@ -50,6 +51,7 @@ class CoinbaseLine(PlatformLine):
       self.totalWFees, self.fees = abs(float(c[7])), abs(float(c[8]))
     except Exception:
       self.setNothingValid()
+      logging.debug("Couldn't extract information")
       return False # If failed to parse properly line
 
     # If no error occurred

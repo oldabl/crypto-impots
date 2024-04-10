@@ -1,4 +1,4 @@
-import ccxt,currency_converter,datetime
+import ccxt, currency_converter, datetime, logging
 from Defaults import Defaults
 
 # Class responsible for handling all
@@ -16,7 +16,7 @@ class CryptoExchange:
       timestamp = int(date.timestamp() * 1000)
       response = CryptoExchange.exchange.fetch_ohlcv(cryptoHandle+'/USDT', '1m', timestamp, 1)
       value = (response[0][1] + response[0][4])/2
-      value = CurrencyExchange.convertCurrencyAmount(value, 'USD', Defaults.currency, date=date)
+      value = CurrencyExchange.convertCurrencyAmount(value, 'USD', Defaults.CURRENCY, date=date)
     except Exception as e:
       # print("Exception:", cryptoHandle, e)
       pass
@@ -31,7 +31,7 @@ class CurrencyExchange:
   # Returns: the amount of fromCurrency converted
   #  into the toCurrency, with the rate available at specified date
   @staticmethod
-  def convertCurrencyAmount(amount, fromCurrency, toCurrency=Defaults.currency, date=datetime.datetime.now()):
+  def convertCurrencyAmount(amount, fromCurrency, toCurrency=Defaults.CURRENCY, date=datetime.datetime.now()):
     value = 0.00
     try:
       value = CurrencyExchange.currencyConverter.convert(amount, fromCurrency, toCurrency, date=date)

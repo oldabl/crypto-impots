@@ -1,4 +1,4 @@
-import datetime
+import datetime, logging
 from Exchange import CryptoExchange, CurrencyExchange
 from Defaults import Defaults
 
@@ -18,6 +18,7 @@ class PortfolioHandler:
   # Constructor input:
   #  - statement: StatementHandler object
   def __init__(self, statement):
+    logging.debug
     self.statement = statement
     self.populateMissingInformation()
 
@@ -76,13 +77,13 @@ class PortfolioHandler:
           line.setSubTotal(line.getQuantity()*cvad)
       
       # If information is complete but currency is wrong
-      if line.getSpotCurrency() != Defaults.currency:
+      if line.getSpotCurrency() != Defaults.CURRENCY:
         change = True
-        newSubTotal = CurrencyExchange.convertCurrencyAmount(line.getSubTotal(), line.getSpotCurrency(), Defaults.currency, line.getDate())
+        newSubTotal = CurrencyExchange.convertCurrencyAmount(line.getSubTotal(), line.getSpotCurrency(), Defaults.CURRENCY, line.getDate())
         line.setSubTotal(newSubTotal)
-        newFees = CurrencyExchange.convertCurrencyAmount(line.getFees(), line.getSpotCurrency(), Defaults.currency, line.getDate())
+        newFees = CurrencyExchange.convertCurrencyAmount(line.getFees(), line.getSpotCurrency(), Defaults.CURRENCY, line.getDate())
         line.setFees(newFees)
-        line.setSpotCurrency(Defaults.currency)
+        line.setSpotCurrency(Defaults.CURRENCY)
 
       # Update the statement if needed
       if change:

@@ -1,8 +1,8 @@
-import datetime
-from PlatformLine import PlatformLine
+import datetime, logging
 from Defaults import Defaults
+from StatementLine import StatementLine
 
-class KrakenLine(PlatformLine):
+class KrakenLine(StatementLine):
 
   listData = ['txid',
               'refid',
@@ -98,7 +98,7 @@ class KrakenLine(PlatformLine):
         if self.crypto[0] == 'X': self.crypto = c[6][1:]
         if self.crypto == "XBT" : self.crypto = "BTC"
         self.quantity = abs(float(c[7]))
-        self.spotCurrency = Defaults.currency
+        self.spotCurrency = Defaults.CURRENCY
         self.subTotal = None
         self.spotPrice = None
         self.cryptoFees = abs(float(c[8]))
@@ -109,15 +109,15 @@ class KrakenLine(PlatformLine):
         if self.crypto[0] == 'X': self.crypto = c[6][1:]
         if self.crypto == "XBT" : self.crypto = "BTC"
         self.quantity = abs(float(c[7]))
-        self.spotCurrency = Defaults.currency
+        self.spotCurrency = Defaults.CURRENCY
         self.subTotal = None
         self.spotPrice = None
         self.cryptoFees = abs(float(c[8]))
         self.totalWFees = None
         self.desc = c[1]
     except Exception as e:
-      # print(e)
       self.setNothingValid()
+      logging.debug("Couldn't extract information")
       return False # If failed to parse properly line
 
     # If no error occured
