@@ -97,8 +97,8 @@ def test_portfolio_from_statement_matches_platform_values(mocker):
     'NEAR': 0.69916509, 'XCN': 66.94582892,
     'TIME': 0.14772372, 'USDC': 0.14772372
   }
-  for key, items in portfolio.getCryptosOwned().items():
-    assert portfolio.getCryptosOwned()[key] == platformValues[key]
+  for key,item in portfolio.getCryptosOwned().items():
+    assert item == platformValues[key]
 
 # FOR LOCAL RUN
 if __name__ == '__main__':

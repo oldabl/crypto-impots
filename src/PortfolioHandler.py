@@ -118,7 +118,7 @@ class PortfolioHandler:
         self.statement.replaceLine(i, line)
     pr.join()
 
-  # Returns the whole portfolio value owned
+  # Returns: the whole portfolio value owned
   def portfolioValue(self, date, onlyBought=True):
     cryptoRegistry = self.cryptosOwned
     if onlyBought:
@@ -130,6 +130,8 @@ class PortfolioHandler:
       portfolioValue = portfolioValue + float(value)*amount
     return portfolioValue
 
+  # Role: go through portfolio to evaluate taxable gains
+  # - will print the portfolio out at the end if showPortfolio=True
   def examinePortfolioForTaxableGains(self, showPortfolio=True):
     progressbar = ProgressBar.ProgressBar(pretext="Examen des relevés" + " "*19,rightjustified=False)
     number = multiprocessing.Value("i", 0)
