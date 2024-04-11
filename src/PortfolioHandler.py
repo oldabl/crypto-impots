@@ -233,12 +233,12 @@ class PortfolioHandler:
     del self.cryptosOwned[Defaults.CURRENCY]
 
     # Remove crypto whose quantity is 0
-    keysToDelete = []
-    for key, item in self.cryptosOwned.items():
-      if item == 0.0:
-        keysToDelete.append(key)
-    for key in keysToDelete:
-      del self.cryptosOwned[key]
+    # keysToDelete = []
+    # for key, item in self.cryptosOwned.items():
+    #   if item == 0.0:
+    #     keysToDelete.append(key)
+    # for key in keysToDelete:
+    #   del self.cryptosOwned[key]
 
   def printPortfolioNow(self):
     print("")
