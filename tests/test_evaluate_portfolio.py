@@ -16,9 +16,10 @@ from PortfolioHandler import PortfolioHandler
 result = {2023: -0.8665641249477958, 2024: 947.8437781903135}
 
 def test_portfolio_from_statement_matches_platform_values(mocker):
-  sth = StatementHandler(makeFullPath('test_files/statements/real'))
   mocker.patch('Exchange.CryptoExchange.getCryptoValueAtDate', return_value=0)
   mocker.patch('Exchange.CurrencyExchange.convertCurrencyAmount', return_value=0)
+
+  sth = StatementHandler(makeFullPath('test_files/statements/real/'))
 
   portfolio = PortfolioHandler(sth, loadingBars=False)
 
@@ -34,7 +35,6 @@ def test_portfolio_from_statement_matches_platform_values(mocker):
     'NEAR': '0.69916509', 'XCN': '66.94582892',
     'TIME': '0.14772372', 'USDC': '0.14772372'
   }
-  print(portfolio.getCryptosOwned())
   for key,item in portfolio.getCryptosOwned().items():
     assert PortfolioHandler.roundCryptoQuantity(item) == platformValues[key]
 
