@@ -9,6 +9,7 @@ class CryptoExchange:
 
   # Returns: the value of the crypto at the date specified,
   #  in the default currency
+  # If an error occurs, it will return 0
   @staticmethod
   def getCryptoValueAtDate(cryptoHandle, date):
     value = 0.00
@@ -18,8 +19,7 @@ class CryptoExchange:
       value = (response[0][1] + response[0][4])/2
       value = CurrencyExchange.convertCurrencyAmount(value, 'USD', Defaults.CURRENCY, date=date)
     except Exception as e:
-      # print("Exception:", cryptoHandle, e)
-      pass
+      logging.error("Exception: %s %s", cryptoHandle, e)
     return value
 
 # Class responsible for handling all
@@ -30,12 +30,12 @@ class CurrencyExchange:
 
   # Returns: the amount of fromCurrency converted
   #  into the toCurrency, with the rate available at specified date
+  # If an error occurs, it will return 0
   @staticmethod
   def convertCurrencyAmount(amount, fromCurrency, toCurrency=Defaults.CURRENCY, date=datetime.datetime.now()):
     value = 0.00
     try:
       value = CurrencyExchange.currencyConverter.convert(amount, fromCurrency, toCurrency, date=date)
     except Exception as e:
-      # print("Exception:", fromCurrency, e)
-      pass
+      logging.error("Exception: %s %s", fromCurrency, e)
     return value

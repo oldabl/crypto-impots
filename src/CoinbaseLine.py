@@ -60,7 +60,7 @@ class CoinbaseLine(StatementLine):
 
   # Human readable class functions
   def __str__(self):
-    if self.isFormatValid():
+    if self.isLineFormatValid():
       return str({
                   'date': self.date.strftime("%Y-%m-%d %H:%M:%S"),
                   'opType': self.opType,

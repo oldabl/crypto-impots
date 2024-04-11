@@ -18,6 +18,7 @@ class StatementLine:
   quantity = spotCurrency = None
   spotPrice = subTotal = None
   fees = None
+  cryptoFees = 0.0
 
   # Will store the subclass type
   lineType = None
@@ -26,8 +27,13 @@ class StatementLine:
   rawData = {}
 
   # Flag for determining if line is valid
-  isLineFormatValid = False
-  isLineInformationComplete = False
+  lineFormatValid = False
+  lineInformationComplete = False
+
+  # Flag for discarding lines if joined
+  #  with another line after analysis
+  lineWorthSomething = True
+  discardPreviousLine = False
 
   # Constructor inputs:
   #  - textStatementLine: current line processed
@@ -40,10 +46,14 @@ class StatementLine:
     self.extractInformation()
 
   # Basic attribute getters
-  def isFormatValid(self):
-    return self.isLineFormatValid
-  def isInformationComplete(self):
-    return self.isLineInformationComplete
+  def isLineFormatValid(self):
+    return self.lineFormatValid
+  def isLineInformationComplete(self):
+    return self.lineInformationComplete
+  def isLineWorthSomething(self):
+    return self.lineWorthSomething
+  def isDiscardPreviousLine(self):
+    return self.discardPreviousLine
   def getDate(self):
     return self.date
   def getOpType(self):
@@ -60,6 +70,8 @@ class StatementLine:
     return self.subTotal
   def getFees(self):
     return self.fees
+  def getCryptoFees(self):
+    return self.cryptoFees
   def getLineOptions(self):
     return self.lineOptions
   def getLineType(self):
@@ -76,20 +88,26 @@ class StatementLine:
     self.spotCurrency = spotCurrency
   def setSpotPrice(self, spotPrice):
     self.spotPrice = spotPrice
-  def setInformationComplete(self, isComplete):
-    self.isLineInformationComplete = isComplete
+  def setLineInformationComplete(self, isComplete):
+    self.lineInformationComplete = isComplete
+  def setLineInformationValid(self, isValid):
+    self.lineInformationComplete = isValid
+  def setLineWorthSomething(self, isWorth):
+    self.lineWorthSomething = isWorth
+  def setDiscardPreviousLine(self, discard):
+    self.discardPreviousLine = discard
   def setRawData(self, rawData):
     self.rawData = rawData
 
   # Role: sets validity flags to all good
   def setEverythingValid(self):
-    self.isLineFormatValid = True
-    self.isLineInformationComplete = True
+    self.lineFormatValid = True
+    self.lineInformationComplete = True
 
   # Role: sets validity flags to all bad
   def setNothingValid(self):
-    self.isLineFormatValid = False
-    self.isLineInformationComplete = False
+    self.lineFormatValid = False
+    self.lineInformationComplete = False
 
   # Returns:
   #  - true if line is an operation that buys crypto
@@ -133,7 +151,7 @@ class StatementLine:
 
   # Human readable class functions
   def __str__(self):
-    if self.isFormatValid():
+    if self.isLineFormatValid():
       return str({
                   'date': self.date.strftime("%Y-%m-%d %H:%M:%S"),
                   'opType': self.opType,

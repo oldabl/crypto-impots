@@ -1,6 +1,7 @@
-import datetime, logging
+import datetime, logging, multiprocessing
 from Exchange import CryptoExchange, CurrencyExchange
 from Defaults import Defaults
+from ProgressBar import ProgressBar
 
 # Class responsible for parsing and
 # extracting the information from
@@ -21,6 +22,7 @@ class PortfolioHandler:
     logging.debug
     self.statement = statement
     self.populateMissingInformation()
+    self.examinePortfolioForTaxableGains()
 
   # Basic attribute getters
   def getCryptosBought(self):
@@ -41,7 +43,7 @@ class PortfolioHandler:
       date = datetime.datetime(yearInt, 1, 1)
     except (Exception, ValueError):
       print("'", year, "' is not a year, will return current tax year", yearInt)
-
+      logging.warning("Year not valid: %s", year)
     if yearInt in self.taxableGainsPerYear.keys():
       return self.taxableGainsPerYear[yearInt]
     else:
@@ -51,18 +53,41 @@ class PortfolioHandler:
   # - price at which the crypto was acquired in the default currency
   # - fees in the default currency
   def populateMissingInformation(self):
+    progressbar = ProgressBar.ProgressBar(pretext="Vérification des données des relevés ", rightjustified=False)
+    number = multiprocessing.Value("i", 0)
+    pr = multiprocessing.Process(target=progressbar.inThread, args=(number,len(self.statement.getStatementLines())-1))
+    pr.start()
+
     # Will track the line we look at
-    i = 0
+    i = -1
+
+    logging.debug("Here to populate missing information from some lines")
 
     for line in self.statement.getStatementLines():
 
+      i = i + 1
+
+      # Update progress bar
+      number.value = number.value + 1
+
       # Flag to know if the statement needs updated
       change = False
+      oldLine = line
 
-      if not line.isInformationComplete():
+      # Check if line is worth looking into
+      if not line.isLineWorthSomething():
+        logging.info("Will ignore line %d", i)
+        logging.debug(line)
+        continue
+
+      # If missing information in line
+      if not line.isLineInformationComplete():
+        logging.debug("Line %d information incomplete, will update", i)
+        logging.debug(line)
 
         change = True
         cvad = CryptoExchange.getCryptoValueAtDate(line.getCrypto(), line.getDate())
+        logging.debug("Crypto value at date %s: %d", line.getDate(), cvad)
 
         # If missing default currency fees
         if line.getFees() == None and line.getCryptoFees() != None:
@@ -87,8 +112,11 @@ class PortfolioHandler:
 
       # Update the statement if needed
       if change:
+        logging.info("Replaced line %d", i)
+        logging.debug("Old line %s", str(oldLine))
+        logging.debug("New line %s", str(line))
         self.statement.replaceLine(i, line)
-      i = i + 1
+    pr.join()
 
   # Returns the whole portfolio value owned
   def portfolioValue(self, date, onlyBought=True):
@@ -102,38 +130,60 @@ class PortfolioHandler:
       portfolioValue = portfolioValue + float(value)*amount
     return portfolioValue
 
-  def examinePortfolioForTaxableGains(self):
-    print('Examen des relevés', end='', flush=True)
-    sumBitcoin = 0
+  def examinePortfolioForTaxableGains(self, showPortfolio=True):
+    progressbar = ProgressBar.ProgressBar(pretext="Examen des relevés" + " "*19,rightjustified=False)
+    number = multiprocessing.Value("i", 0)
+    pr = multiprocessing.Process(target=progressbar.inThread, args=(number,len(self.statement.getStatementLines())-1))
+    pr.start()
+
     for line in self.statement.getStatementLines():
 
-      if line.getCrypto() == "BTC":
-        if line.isOutLine(): sumBitcoin = sumBitcoin - line.getQuantity()
-        if line.isInLine(): sumBitcoin = sumBitcoin + line.getQuantity()
-        if line.getLineType() == "Kraken": sumBitcoin = sumBitcoin - line.getCryptoFees() 
+      # Update progress bar
+      number.value = number.value + 1
 
-      if line.getLineType() == "Kraken" and line.getCryptoFees() != None:
+      # Only examine if line is worth something to us
+      if not line.isLineWorthSomething():
+        continue
+
+      # Look at quantities of cryptos owned in total
+      #
+      # Add to cryptos owned
+      if line.isInLine():
         crypto = line.getCrypto()
         if crypto not in self.cryptosOwned.keys():
-          self.cryptosOwned[crypto] = 0.00
+          self.cryptosOwned[crypto] = 0.0
+        self.cryptosOwned[crypto] = self.cryptosOwned[crypto] + line.getQuantity()
+      #
+      # Substract from cryptos owned
+      if line.isOutLine():
+        crypto = line.getCrypto()
+        if crypto not in self.cryptosOwned.keys():
+          self.cryptosOwned[crypto] = 0.0
+        self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getQuantity()
+      #
+      # Substract crypto fees from quantities owned
+      if line.getCryptoFees() != None:
+        crypto = line.getCrypto()
+        if crypto not in self.cryptosOwned.keys():
+          self.cryptosOwned[crypto] = 0.0
         self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getCryptoFees()
+      #
+      # # # # # # # # # # # # # # # # # # # # # # #
 
+
+      # Look at quantities of cryptos bought with time
+      #
+      # Add to crypto bought and workout amount of money invested
       if line.isBuyLine():
         crypto = line.getCrypto()
         if crypto not in self.cryptosBought.keys():
           self.cryptosBought[crypto] = 0.00
         self.cryptosBought[crypto] = self.cryptosBought[crypto] + line.getQuantity()
-        
+
         self.amountInvested = self.amountInvested + line.getSubTotal()
-
-      if line.isInLine():
-        crypto = line.getCrypto()
-        if crypto not in self.cryptosOwned.keys():
-          self.cryptosOwned[crypto] = 0.00
-        self.cryptosOwned[crypto] = self.cryptosOwned[crypto] + line.getQuantity()
-
+      #
+      # If selling crypto, remove part from amount invested and work out how much gains was made from the sale
       if line.isSellLine():
-        print('.', end='', flush=True)
         crypto = line.getCrypto()
         if crypto == line.getSpotCurrency():
           continue
@@ -143,10 +193,10 @@ class PortfolioHandler:
         percentageSold = line.getSubTotal()/valuePortfolio
         percentagePlusValue = valuePortfolio/self.amountInvested
         taxableGains = (valuePortfolio - self.amountInvested) * percentageSold
-        #print("Montant investi à cette date : " + PortfolioHandler.printableAmount(self.amountInvested) + " EUR")
-        #print("Valeur du portefeuille à cette date : " + PortfolioHandler.printableAmount(valuePortfolio) + " EUR")
-        #print("Valeur en euros vendue : " + PortfolioHandler.printableAmount(line.getSubTotal()) + " EUR")
-        #print("Plus value à déclarer : " + PortfolioHandler.printableAmount(taxableGains) + " EUR")
+        #print("Montant investi à cette date : " + PortfolioHandler.roundCurrency(self.amountInvested) + " EUR")
+        #print("Valeur du portefeuille à cette date : " + PortfolioHandler.roundCurrency(valuePortfolio) + " EUR")
+        #print("Valeur en euros vendue : " + PortfolioHandler.roundCurrency(line.getSubTotal()) + " EUR")
+        #print("Plus value à déclarer : " + PortfolioHandler.roundCurrency(taxableGains) + " EUR")
         #print()
         if date.year not in self.taxableGainsPerYear.keys():
           self.taxableGainsPerYear[date.year] = 0.00
@@ -159,9 +209,38 @@ class PortfolioHandler:
 
         # Remove crypto sold in owned crypto
         self.cryptosBought[crypto] = self.cryptosBought[crypto] - line.getQuantity()
-        self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getQuantity()
-    print()
-    print("sumBitcoin",sumBitcoin)
+    pr.join()
+
+    self.cleanPortfolioOfDefaultCurrency()
+
+    # Show portfolio if asked
+    if showPortfolio:
+      self.printPortfolioNow()
+
+  def cleanPortfolioOfDefaultCurrency(self):
+    # Remove default currency
+    del self.cryptosOwned[Defaults.CURRENCY]
+
+    # Remove crypto whose quantity is 0
+    keysToDelete = []
+    for key, item in self.cryptosOwned.items():
+      if item == 0.0:
+        keysToDelete.append(key)
+    for key in keysToDelete:
+      del self.cryptosOwned[key]
+
+  def printPortfolioNow(self):
+    print("")
+    print("Votre portefeuille de crypto :")
+
+    # Will print over two columns
+    sameLine = 0
+    column = dict()
+    for key, item in self.cryptosOwned.items():
+      column[sameLine] = "- " + key.ljust(4) + ": " + PortfolioHandler.roundCryptoQuantity(item)
+      if sameLine == 1:
+        print('{0:30}  {1}'.format(column[0], column[1]))
+      sameLine = (sameLine + 1) % 2
 
   def printSummaryIfSoldRightNow(self):
     now = datetime.datetime.now() - datetime.timedelta(hours=8)
@@ -173,17 +252,19 @@ class PortfolioHandler:
     percentagePlusValue = valuePortfolioBought/self.amountInvested
     taxableGains = (valuePortfolioBought - self.amountInvested) * percentageSold
 
-    print("- Valeur portefeuille de cryptos possédées : " + PortfolioHandler.printableAmount(valuePortfolioOwned))
-    print("- Valeur portefeuille de cryptos achetées : " + PortfolioHandler.printableAmount(valuePortfolioBought))
-    print("- Montant investi à date : " + PortfolioHandler.printableAmount(self.amountInvested))
-    print("- Plus-value à déclarer pour l'année en cours : " + PortfolioHandler.printableAmount(taxableGains))
+    print("- Valeur portefeuille de cryptos possédées : " + PortfolioHandler.roundCurrency(valuePortfolioOwned))
+    print("- Valeur portefeuille de cryptos achetées : " + PortfolioHandler.roundCurrency(valuePortfolioBought))
+    print("- Montant investi à date : " + PortfolioHandler.roundCurrency(self.amountInvested))
+    print("- Plus-value à déclarer pour l'année en cours : " + PortfolioHandler.roundCurrency(taxableGains))
 
   def printSummaryPerYear(self):
-    print(self.cryptosOwned)
     print("Résumé par année : ")
     for year, taxableGain in self.taxableGainsPerYear.items():
-      print("- " + str(year) + " : plus-value imposable " + PortfolioHandler.printableAmount(taxableGain) + " EUR")
+      print("- " + str(year) + " : plus-value imposable " + PortfolioHandler.roundCurrency(taxableGain) + " EUR")
 
   @staticmethod
-  def printableAmount(amount):
+  def roundCurrency(amount):
     return str(round(amount, 2))
+  @staticmethod
+  def roundCryptoQuantity(amount):
+    return str(round(amount, 8))

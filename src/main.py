@@ -13,11 +13,12 @@ if __name__ == '__main__':
 
   print()
   portfolio = PortfolioHandler(statement)
-  portfolio.examinePortfolioForTaxableGains()
+
+  print()
   portfolio.printSummaryPerYear()
 
   print()
   portfolio.printSummaryIfSoldRightNow()
 
-  print(portfolio.getCryptosOwned())
+  print("Cryptos Bought")
   print(portfolio.getCryptosBought())

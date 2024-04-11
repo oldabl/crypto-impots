@@ -19,7 +19,7 @@ class KrakenLine(StatementLine):
   asset = None
   type = None
   amount = None
-  cryptoFees = 0.0
+  cryptoFees = None
 
   # To set the line type before calling parent
   def __init__(self, textStatementLine, previousStatementLine=None):
@@ -35,8 +35,8 @@ class KrakenLine(StatementLine):
     return self.amount
   def getAsset(self):
     return self.asset
-  def getCryptoFees(self):
-    return self.cryptoFees
+  def getFee(self):
+    return self.fee
 
   # Role: try to extract if line matches Kraken statement
   # 0: txid  1: refid  2: time
@@ -73,7 +73,9 @@ class KrakenLine(StatementLine):
       self.type = str(c[3])
       self.asset = str(c[6])
       self.amount = abs(float(c[7]))
-      self.isLineFormatValid = True
+      self.fee = abs(float(c[8]))
+      self.lineFormatValid = True
+      self.lineWorthSomething = False
 
       # If crypto was bought
       #  (previous and current line are linked)
@@ -81,52 +83,72 @@ class KrakenLine(StatementLine):
           self.type in ["receive", "spend"] and
           self.previousStatementLine.getTransactionId() == self.transactionId and
           self.previousStatementLine.getType() in ["spend", "receive"]):
-        self.opType = "Buy"
-        self.crypto = c[6]
-        if self.crypto[0] == 'X': self.crypto = c[6][1:]
-        if self.crypto == "XBT" : self.crypto = "BTC"
-        self.quantity = abs(float(c[7]))
-        self.spotCurrency = self.previousStatementLine.getAsset().split('.')[0]
-        self.subTotal = abs(float(self.previousStatementLine.getAmount()))
-        self.spotPrice = self.subTotal/self.amount # Estimated
-        self.fees = abs(float(self.previousStatementLine.getRawData()['fee']))
-        self.isLineInformationComplete = True
+
+        if self.type == "receive" and self.previousStatementLine.getType() == "spend":
+          self.opType = "Buy"
+          self.crypto = KrakenLine.formatCrypto(c[6])
+          self.quantity = abs(float(c[7]))
+          self.spotCurrency = self.previousStatementLine.getAsset().split('.')[0]
+          self.subTotal = abs(float(self.previousStatementLine.getAmount()))
+          self.spotPrice = self.subTotal/self.amount # Estimated
+          self.fees = abs(float(self.previousStatementLine.getRawData()['fee']))
+          self.lineInformationComplete = True
+          self.discardPreviousLine = True
+          self.lineWorthSomething = True
+
+        elif self.type == "spend" and self.previousStatementLine.getType() == "receive":
+          self.opType = "Buy"
+          self.crypto = KrakenLine.formatCrypto(self.previousStatementLine.getAsset())
+          self.quantity = abs(float(self.previousStatementLine.getAmount()))
+          self.spotCurrency = c[6].split('.')[0]
+          self.subTotal = abs(float(c[7]))
+          self.spotPrice = self.subTotal/self.previousStatementLine.getAmount() # Estimated
+          self.fees = self.previousStatementLine.getFee()
+          self.lineInformationComplete = True
+          self.discardPreviousLine = True
+          self.lineWorthSomething = True
+
       # If deposit not into Kraken EUR hold, count it as Buy
-      elif c[3] == "deposit" and not "HOLD" in c[6]:
+      if c[3] == "deposit" and not "HOLD" in c[6]:
         self.opType = "Buy"
-        self.crypto = c[6]
-        if self.crypto[0] == 'X': self.crypto = c[6][1:]
-        if self.crypto == "XBT" : self.crypto = "BTC"
+        self.crypto = KrakenLine.formatCrypto(c[6])
         self.quantity = abs(float(c[7]))
         self.spotCurrency = Defaults.CURRENCY
         self.subTotal = None
         self.spotPrice = None
         self.cryptoFees = abs(float(c[8]))
+        self.lineWorthSomething = True
+
       # If withdrawal from crypto account
-      elif c[3] == "withdrawal":
+      if c[3] == "withdrawal":
         self.opType = "Send"
-        self.crypto = c[6]
-        if self.crypto[0] == 'X': self.crypto = c[6][1:]
-        if self.crypto == "XBT" : self.crypto = "BTC"
+        self.crypto = KrakenLine.formatCrypto(c[6])
         self.quantity = abs(float(c[7]))
         self.spotCurrency = Defaults.CURRENCY
         self.subTotal = None
         self.spotPrice = None
         self.cryptoFees = abs(float(c[8]))
         self.totalWFees = None
-        self.desc = c[1]
+        self.lineWorthSomething = True
+
     except Exception as e:
       self.setNothingValid()
       logging.debug("Couldn't extract information")
       return False # If failed to parse properly line
 
-    # If no error occured
-    self.setEverythingValid()
-    return True
+  # Role: format crypto coming from Kraken statement line
+  # Examples: FIDA -> FIDA
+  #           XXBT -> BTC
+  #           XLTC -> LTC
+  @staticmethod
+  def formatCrypto(crypto):
+    if crypto[0] == 'X': crypto = crypto[1:]
+    if crypto == "XBT" : crypto = "BTC"
+    return crypto
 
   # Human readable class functions
   def __str__(self):
-    if self.isFormatValid():
+    if self.isLineFormatValid():
       return str({
                   'date': self.date.strftime("%Y-%m-%d %H:%M:%S"),
                   'opType': self.opType,
@@ -136,7 +158,7 @@ class KrakenLine(StatementLine):
                   'spotPrice': self.spotPrice,
                   'subTotal': self.subTotal,
                   'fees': self.fees,
-                  'cryptoFees': self.cryptoFees,
+                  'cryptoFees': self.cryptoFees if self.cryptoFees != None else 0.0,
                   'lineType': self.lineType
                 })
     return "Invalid statement line"

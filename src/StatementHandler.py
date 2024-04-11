@@ -94,24 +94,30 @@ class StatementHandler:
     with open(self.path, 'r') as f:
       lines = f.readlines()
       previousLine = None
-      
 
       # Go through all lines...
       for line in lines:
         # ... and send them for analysis
         for option in Defaults.COMPATIBLE_PLATFORMS:
-          logging.debug("Check if line from %s", option)
+          logging.debug("Check if line from platform %s", option)
           statementLine = eval(option+"Line")(line, previousLine)
 
           # If line is valid, add it to list
-          if statementLine.isFormatValid():
+          if statementLine.isLineFormatValid():
             logging.info("Line is valid from %s", option)
             logging.debug(statementLine)
+
+            # Remove previous statement line if it was used for current one
+            if statementLine.isDiscardPreviousLine() and len(self.statementLines) > 0:
+              logging.debug("Discard previous line %s", self.statementLines.pop())
+
             self.statementLines.append(statementLine)
 
             # Save current line for next loop iteration
             previousLine = statementLine
             break
+
+      logging.info("Has a total of %d statement lines in total", len(self.statementLines))
 
   # Role: sort the list of lines by ascending date
   def sortDateAscending(self):
