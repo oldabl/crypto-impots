@@ -17,9 +17,10 @@ class PortfolioHandler:
   taxableGainsPerYear = {}
 
   # Constructor input:
-  #  - statement: StatementHandler object
-  def __init__(self, statement):
-    logging.debug
+  # - statement: StatementHandler object
+  # - loadingBars: show progress bars
+  def __init__(self, statement, loadingBars=True):
+    self.loadingBars = loadingBars
     self.statement = statement
     self.populateMissingInformation()
     self.examinePortfolioForTaxableGains()
@@ -53,10 +54,14 @@ class PortfolioHandler:
   # - price at which the crypto was acquired in the default currency
   # - fees in the default currency
   def populateMissingInformation(self):
-    progressbar = ProgressBar.ProgressBar(pretext="Vérification des données des relevés ", rightjustified=False)
-    number = multiprocessing.Value("i", 0)
-    pr = multiprocessing.Process(target=progressbar.inThread, args=(number,len(self.statement.getStatementLines())-1))
-    pr.start()
+    pretext = "Vérification des données des relevés "
+    if self.loadingBars:
+      progressbar = ProgressBar.ProgressBar(pretext=pretext, rightjustified=False)
+      number = multiprocessing.Value("i", 0)
+      pr = multiprocessing.Process(target=progressbar.inThread, args=(number,len(self.statement.getStatementLines())-1))
+      pr.start()
+    else:
+      print(pretext.strip()+"...")
 
     # Will track the line we look at
     i = -1
@@ -68,7 +73,7 @@ class PortfolioHandler:
       i = i + 1
 
       # Update progress bar
-      number.value = number.value + 1
+      if self.loadingBars: number.value = number.value + 1
 
       # Flag to know if the statement needs updated
       change = False
@@ -116,7 +121,7 @@ class PortfolioHandler:
         logging.debug("Old line %s", str(oldLine))
         logging.debug("New line %s", str(line))
         self.statement.replaceLine(i, line)
-    pr.join()
+    if self.loadingBars: pr.join()
 
   # Returns: the whole portfolio value owned
   def portfolioValue(self, date, onlyBought=True):
@@ -133,15 +138,19 @@ class PortfolioHandler:
   # Role: go through portfolio to evaluate taxable gains
   # - will print the portfolio out at the end if showPortfolio=True
   def examinePortfolioForTaxableGains(self, showPortfolio=True):
-    progressbar = ProgressBar.ProgressBar(pretext="Examen des relevés" + " "*19,rightjustified=False)
-    number = multiprocessing.Value("i", 0)
-    pr = multiprocessing.Process(target=progressbar.inThread, args=(number,len(self.statement.getStatementLines())-1))
-    pr.start()
+    pretext = "Examen des relevés" + " "*19
+    if self.loadingBars:
+      progressbar = ProgressBar.ProgressBar(pretext=pretext,rightjustified=False)
+      number = multiprocessing.Value("i", 0)
+      pr = multiprocessing.Process(target=progressbar.inThread, args=(number,len(self.statement.getStatementLines())-1))
+      pr.start()
+    else:
+      print(pretext.strip()+"...")
 
     for line in self.statement.getStatementLines():
 
       # Update progress bar
-      number.value = number.value + 1
+      if self.loadingBars: number.value = number.value + 1
 
       # Only examine if line is worth something to us
       if not line.isLineWorthSomething():
@@ -211,7 +220,7 @@ class PortfolioHandler:
 
         # Remove crypto sold in owned crypto
         self.cryptosBought[crypto] = self.cryptosBought[crypto] - line.getQuantity()
-    pr.join()
+    if self.loadingBars: pr.join()
 
     self.cleanPortfolioOfDefaultCurrency()
 
