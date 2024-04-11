@@ -191,7 +191,7 @@ class PortfolioHandler:
         #print("Vente de " + crypto + " en date du", date, ": ")
         valuePortfolio = self.portfolioValue(date)
         percentageSold = line.getSubTotal()/valuePortfolio if valuePortfolio > 0 else 1
-        percentagePlusValue = valuePortfolio/self.amountInvested
+        percentagePlusValue = valuePortfolio/self.amountInvested if self.amountInvested != 0 else valuePortfolio
         taxableGains = (valuePortfolio - self.amountInvested) * percentageSold
         #print("Montant investi à cette date : " + PortfolioHandler.roundCurrency(self.amountInvested) + " EUR")
         #print("Valeur du portefeuille à cette date : " + PortfolioHandler.roundCurrency(valuePortfolio) + " EUR")
@@ -204,7 +204,7 @@ class PortfolioHandler:
 
 
         # Compute information to withdraw sold amount part in invested amount
-        toWithDrawFromAmountInvested = line.getSubTotal()/percentagePlusValue if percentagePlusValue > 0 else 1
+        toWithDrawFromAmountInvested = line.getSubTotal()/percentagePlusValue if percentagePlusValue > 0 else line.getSubTotal()
         self.amountInvested = self.amountInvested - toWithDrawFromAmountInvested
 
         # Remove crypto sold in owned crypto
