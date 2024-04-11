@@ -1,6 +1,6 @@
 # test_parse_line.py
 
-import sys, pytest, datetime
+import sys, datetime
 
 # FOR LOCAL RUN
 if __name__ == '__main__':
@@ -8,7 +8,7 @@ if __name__ == '__main__':
 # FOR LOCAL RUN
 
 
-from StatementLine import StatementLine
+from CoinbaseLine import CoinbaseLine
 
 def test_parse_coinbase_line():
   timestamp = "2024-03-26 23:12:03 UTC"
@@ -23,7 +23,7 @@ def test_parse_coinbase_line():
   notes = "Sold 46.165532 FIDA for 20.89 EUR"
   coinbase_line = ",".join([timestamp, trans_type, asset, quantity_trans, spot_price_curr, spot_price_at_trans, subtotal, total_with_fees, fees, notes])
 
-  stl = StatementLine(coinbase_line)
+  stl = CoinbaseLine(coinbase_line)
 
   assert stl.getDate() == datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S %Z")
   assert stl.getOpType() == trans_type
