@@ -204,7 +204,7 @@ class PortfolioHandler:
 
 
         # Compute information to withdraw sold amount part in invested amount
-        toWithDrawFromAmountInvested = line.getSubTotal()/percentagePlusValue
+        toWithDrawFromAmountInvested = line.getSubTotal()/percentagePlusValue if percentagePlusValue > 0 else 1
         self.amountInvested = self.amountInvested - toWithDrawFromAmountInvested
 
         # Remove crypto sold in owned crypto
