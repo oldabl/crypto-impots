@@ -190,7 +190,7 @@ class PortfolioHandler:
         date = line.getDate()
         #print("Vente de " + crypto + " en date du", date, ": ")
         valuePortfolio = self.portfolioValue(date)
-        percentageSold = line.getSubTotal()/valuePortfolio
+        percentageSold = line.getSubTotal()/valuePortfolio if valuePortfolio > 0 else 1
         percentagePlusValue = valuePortfolio/self.amountInvested
         taxableGains = (valuePortfolio - self.amountInvested) * percentageSold
         #print("Montant investi à cette date : " + PortfolioHandler.roundCurrency(self.amountInvested) + " EUR")
