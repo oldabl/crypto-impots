@@ -28,11 +28,11 @@ def test_parse_coinbase_line():
   assert stl.getDate() == datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S %Z")
   assert stl.getOpType() == trans_type
   assert stl.getCrypto() == asset
-  assert stl.getQuantity() == float(quantity_trans)
+  assert stl.getQuantity() == abs(float(quantity_trans))
   assert stl.getSpotCurrency() == spot_price_curr
-  assert stl.getSpotPrice() == float(spot_price_at_trans)
-  assert stl.getSubTotal() == float(subtotal)
-  assert stl.getFees() == float(fees)
+  assert stl.getSpotPrice() == abs(float(spot_price_at_trans))
+  assert stl.getSubTotal() == abs(float(subtotal))
+  assert stl.getFees() == abs(float(fees))
   assert stl.getDesc() == notes
 
 

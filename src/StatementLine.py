@@ -44,6 +44,8 @@ class StatementLine:
     logging.debug(self.textStatementLine)
     # Immediate call to extract information
     self.extractInformation()
+    self.uniqueLines()
+    self.sortDateAscending()
 
   # Basic attribute getters
   def isLineFormatValid(self):

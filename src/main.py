@@ -8,9 +8,6 @@ if __name__ == '__main__':
   print()
   statement = StatementHandler(os.path.join(os.getcwd(),'statements'))
 
-  statement.uniqueLines()
-  statement.sortDateAscending()
-
   print()
   portfolio = PortfolioHandler(statement)
 
