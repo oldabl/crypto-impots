@@ -61,7 +61,6 @@ def test_parse_several_statements_sort_by_date():
       assert line.getDate() >= old_date
     old_date = line.getDate()
 
-
 # FOR LOCAL RUN
 if __name__ == '__main__':
   test_wrong_path()
