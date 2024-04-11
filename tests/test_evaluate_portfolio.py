@@ -15,6 +15,29 @@ from PortfolioHandler import PortfolioHandler
 
 result = {2023: -0.8665641249477958, 2024: 947.8437781903135}
 
+def test_portfolio_from_statement_matches_platform_values(mocker):
+  sth = StatementHandler(makeFullPath('test_files/statements/real'))
+  mocker.patch('Exchange.CryptoExchange.getCryptoValueAtDate', return_value=0)
+  mocker.patch('Exchange.CurrencyExchange.convertCurrencyAmount', return_value=0)
+
+  portfolio = PortfolioHandler(sth, loadingBars=False)
+
+  platformValues = {
+    'BTC': '0.01525753', 'ETH': '0.11860456',
+    'XLM': '29.8295733', 'FET': '4.01625122',
+    'GRT': '25.24859345', 'AMP': '159.53212373',
+    'LTC': '1.33607457', 'FIL': '0.98077875',
+    'CRO': '50.31572195', 'SOL': '0.05721957',
+    'SHIB': '314846.56679405', 'CLV': '67.80662592',
+    'DOGE': '126.32311693', 'FIDA': '30.066464',
+    'SAND': '3.1751083', 'GAL': '1.19601431',
+    'NEAR': '0.69916509', 'XCN': '66.94582892',
+    'TIME': '0.14772372', 'USDC': '0.14772372'
+  }
+  print(portfolio.getCryptosOwned())
+  for key,item in portfolio.getCryptosOwned().items():
+    assert PortfolioHandler.roundCryptoQuantity(item) == platformValues[key]
+
 def test_evaluate_taxable_gains_no_year(mocker):
   mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result)
   
@@ -77,28 +100,6 @@ def test_evaluate_taxable_gains_year_empty(mocker):
   #portfolio.examinePortfolioForTaxableGains()
 
   assert portfolio.getTaxableGainsPerYear(2022) == 0
-
-def test_portfolio_from_statement_matches_platform_values(mocker):
-  sth = StatementHandler(makeFullPath('test_files/statements/real'))
-  mocker.patch('Exchange.CryptoExchange.getCryptoValueAtDate', return_value=0)
-  mocker.patch('Exchange.CurrencyExchange.convertCurrencyAmount', return_value=0)
-
-  portfolio = PortfolioHandler(sth, loadingBars=False)
-
-  platformValues = {
-    'BTC': '0.01525753', 'ETH': '0.11860456',
-    'XLM': '29.8295733', 'FET': '4.01625122',
-    'GRT': '25.24859345', 'AMP': '159.53212373',
-    'LTC': '1.33607457', 'FIL': '0.98077875',
-    'CRO': '50.31572195', 'SOL': '0.05721957',
-    'SHIB': '314846.56679405', 'CLV': '67.80662592',
-    'DOGE': '126.32311693', 'FIDA': '30.066464',
-    'SAND': '3.1751083', 'GAL': '1.19601431',
-    'NEAR': '0.69916509', 'XCN': '66.94582892',
-    'TIME': '0.14772372', 'USDC': '0.14772372'
-  }
-  for key,item in portfolio.getCryptosOwned().items():
-    assert PortfolioHandler.roundCryptoQuantity(item) == platformValues[key]
 
 # FOR LOCAL RUN
 if __name__ == '__main__':
