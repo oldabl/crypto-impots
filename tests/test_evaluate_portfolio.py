@@ -16,8 +16,8 @@ from PortfolioHandler import PortfolioHandler
 result = {2023: -0.8665641249477958, 2024: 947.8437781903135}
 
 def test_portfolio_from_statement_matches_platform_values(mocker):
-  mocker.patch('Exchange.CryptoExchange.getCryptoValueAtDate', return_value=0)
-  mocker.patch('Exchange.CurrencyExchange.convertCurrencyAmount', return_value=0)
+  mocker.patch('Exchange.CryptoExchange.getCryptoValueAtDate', return_value=1000)
+  mocker.patch('Exchange.CurrencyExchange.convertCurrencyAmount', return_value=1)
 
   sth = StatementHandler(makeFullPath('test_files/statements/real/'))
 

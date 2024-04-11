@@ -70,10 +70,12 @@ class PortfolioHandler:
 
     for line in self.statement.getStatementLines():
 
+      # Track
       i = i + 1
 
       # Update progress bar
-      if self.loadingBars: number.value = number.value + 1
+      if self.loadingBars:
+        number.value = number.value + 1
 
       # Flag to know if the statement needs updated
       change = False
@@ -121,7 +123,10 @@ class PortfolioHandler:
         logging.debug("Old line %s", str(oldLine))
         logging.debug("New line %s", str(line))
         self.statement.replaceLine(i, line)
-    if self.loadingBars: pr.join()
+
+    # Stop progress bar
+    if self.loadingBars:
+      pr.join()
 
   # Returns: the whole portfolio value owned
   def portfolioValue(self, date, onlyBought=True):
@@ -150,7 +155,8 @@ class PortfolioHandler:
     for line in self.statement.getStatementLines():
 
       # Update progress bar
-      if self.loadingBars: number.value = number.value + 1
+      if self.loadingBars:
+        number.value = number.value + 1
 
       # Only examine if line is worth something to us
       if not line.isLineWorthSomething():
@@ -220,8 +226,12 @@ class PortfolioHandler:
 
         # Remove crypto sold in owned crypto
         self.cryptosBought[crypto] = self.cryptosBought[crypto] - line.getQuantity()
-    if self.loadingBars: pr.join()
 
+    # Stop progress bar
+    if self.loadingBars:
+      pr.join()
+
+    # Clean portfolio of useless values (like actual currency or 0)
     self.cleanPortfolioOfUselessKeys()
 
     # Show portfolio if asked
@@ -266,10 +276,10 @@ class PortfolioHandler:
     percentagePlusValue = valuePortfolioBought/self.amountInvested
     taxableGains = (valuePortfolioBought - self.amountInvested) * percentageSold
 
-    print("- Valeur portefeuille de cryptos possédées : " + PortfolioHandler.roundCurrency(valuePortfolioOwned))
-    print("- Valeur portefeuille de cryptos achetées : " + PortfolioHandler.roundCurrency(valuePortfolioBought))
-    print("- Montant investi à date : " + PortfolioHandler.roundCurrency(self.amountInvested))
-    print("- Plus-value à déclarer pour l'année en cours : " + PortfolioHandler.roundCurrency(taxableGains))
+    print("- Valeur actuelle du portefeuille :\n   " + PortfolioHandler.roundCurrency(valuePortfolioOwned))
+    print("- Valeur actuelle du portefeuille ramené aux achats :\n   " + PortfolioHandler.roundCurrency(valuePortfolioBought))
+    print("- Montant investi à date :\n   " + PortfolioHandler.roundCurrency(self.amountInvested))
+    print("- Plus-value à déclarer pour l'année en cours :\n   " + PortfolioHandler.roundCurrency(taxableGains))
 
   # Role: prints a summary of taxable gains per year
   def printSummaryPerYear(self):
