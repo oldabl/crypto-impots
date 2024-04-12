@@ -5,6 +5,7 @@ import logging
 class Defaults:
   CURRENCY = "EUR"
   COMPATIBLE_PLATFORMS = ["Coinbase", "Kraken"]
+  PRETEXT_LENGTH = 37
 
 logging.basicConfig(filename="info.log",
                     filemode="w",

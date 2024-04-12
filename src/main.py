@@ -1,4 +1,4 @@
-import os
+import os, sys
 from StatementHandler import StatementHandler
 from PortfolioHandler import PortfolioHandler
 
@@ -9,13 +9,10 @@ if __name__ == '__main__':
   statement = StatementHandler(os.path.join(os.getcwd(),'statements'))
 
   print()
-  portfolio = PortfolioHandler(statement)
+  portfolio = PortfolioHandler(statement, loadingBars = sys.stdout.isatty())
 
   print()
   portfolio.printSummaryPerYear()
 
   print()
   portfolio.printSummaryIfSoldRightNow()
-
-  print("Cryptos Bought")
-  print(portfolio.getCryptosBought())
