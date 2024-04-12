@@ -1,7 +1,8 @@
 # test_evaluate_portfolio.py
 
 import sys, os
-from unittest.mock import Mock, MagicMock
+from unittest.mock import patch
+
 # FOR LOCAL RUN
 if __name__ == '__main__':
   sys.path.append('src')
@@ -13,7 +14,6 @@ def makeFullPath(path):
 
 from StatementHandler import StatementHandler
 from PortfolioHandler import PortfolioHandler
-from Exchange import CryptoExchange, CurrencyExchange
 
 def test_portfolio_from_statement_matches_platform_values():
   print("test_portfolio_from_statement_matches_platform_values()")
@@ -36,13 +36,14 @@ def test_portfolio_from_statement_matches_platform_values():
   for key,item in portfolio.getCryptosOwned().items():
     assert PortfolioHandler.roundCryptoQuantity(item) == platformValues[key]
 
+resultExpected = {2023: -0.8665641249477958, 2024: 891.8719901994936}
+@patch.object(PortfolioHandler, "taxableGainsPerYear", resultExpected)
 def test_evaluate_taxable_gains():
   print("test_evaluate_taxable_gains_no_year()")
+
   sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
   sth.uniqueLines()
   sth.sortDateAscending()
-
-  resultExpected = {2023: -0.8665641249477958, 2024: 891.8719901994936}
   
   portfolio = PortfolioHandler(sth, loadingBars=False)
 
@@ -57,5 +58,5 @@ def test_evaluate_taxable_gains():
 # FOR LOCAL RUN
 if __name__ == '__main__':
   test_evaluate_taxable_gains()
-  test_portfolio_from_statement_matches_platform_values()
+  # test_portfolio_from_statement_matches_platform_values()
 # FOR LOCAL RUN

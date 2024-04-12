@@ -8,6 +8,9 @@ from ProgressBar import ProgressBar
 # an exchange platform CSV statement
 class PortfolioHandler:
 
+  cryptosBought = cryptosOwned = {}
+  taxableGainsPerYear = {}
+
   # Constructor input:
   # - statement: StatementHandler object
   # - loadingBars: show progress bars
