@@ -1,5 +1,5 @@
 # Crypto Impots
-Calculer vos plus-values imposables* sur vos cryptomonnaies depuis vos documents Coinbase et Kraken.
+Calculer vos plus-values imposables* sur vos cryptomonnaies depuis vos documents Coinbase.
 
 Les plateformes d'échange de cryptomonnaies ne fournissent pas d'imprimé fiscal unique pour déclarer ses plus-values aux impôts.
 
@@ -14,6 +14,8 @@ Clonez ce repository sur votre machine.
 ### 2. Ajouter vos relevés au format _.csv_ aux dossier _statements_
 
 Tous les relevés doivent être présent, depuis l'ouverture de vos comptes jusqu'à la fin de l'année pour laquelle vous souhaitez évaluer vos plus-values, ou même jusqu'à aujourd'hui.
+
+Compatible avec : **Coinbase seulement**
 
 ### 3. Téléchargez et installez le logiciel Docker Desktop
 
