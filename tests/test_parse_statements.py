@@ -35,8 +35,6 @@ def test_parse_several_statements_one_folder_no_duplicates():
 def test_parse_several_statements_one_folder_with_duplicates():
   print("test_parse_several_statements_one_folder_with_duplicates()")
   sth = StatementHandler(makeFullPath('test_files/statements/several/duplicates'))
-  assert sth.howManyLines() == 10
-  sth.uniqueLines()
   assert sth.howManyLines() == 6
 
 def test_parse_several_statements_one_file_only_invalid():

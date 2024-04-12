@@ -18,6 +18,8 @@ class StatementHandler:
   # Constructor input:
   #  - path: path to statement file or folder
   def __init__(self, path):
+    self.statementLines = []
+    self.isDIr = False
     self.path = path
     # Will check if path is valid
     self.checkPath()
