@@ -1,7 +1,7 @@
 # test_evaluate_portfolio.py
 
-import sys, pytest, os
-from unittest.mock import Mock
+import sys, os
+from unittest.mock import Mock, MagicMock
 # FOR LOCAL RUN
 if __name__ == '__main__':
   sys.path.append('src')
@@ -13,11 +13,12 @@ def makeFullPath(path):
 
 from StatementHandler import StatementHandler
 from PortfolioHandler import PortfolioHandler
+from Exchange import CryptoExchange, CurrencyExchange
 
 result = {2023: -0.8665641249477958, 2024: 947.8437781903135}
 
-def test_portfolio_from_statement_matches_platform_values(mocker):
-  mocker.patch('Exchange.CryptoExchange.getCryptoValueAtDate', return_value=1000)
+def test_portfolio_from_statement_matches_platform_values():
+  CryptoExchange.getCryptoValueAtDate = MagicMock(return_value=0)
   arguments = [
     ("ETH","2022-01-06 11:03:44","2943.619089703933"),
     ("BTC","2022-01-06 11:08:38","37754.40123729563"),
@@ -33,11 +34,11 @@ def test_portfolio_from_statement_matches_platform_values(mocker):
     ("ETH","2022-09-02 13:50:02","1592.6798759131393")
   ]
   m = Mock()
-  m.side_effect = []
+  side_effect = []
   for arg in arguments:
-    m.side_effect.append(arg[2])
-  mocker.patch('Exchange.CurrencyExchange.convertCurrencyAmount', return_value=m())
-  m = Mock()
+    side_effect.append(arg[2])
+  m.side_effect = side_effect
+  CurrencyExchange.convertCurrencyAmount = m
   arguments = [
     ("ETH","2022-01-06 11:03:44","2943.619089703933"),
     ("BTC","2022-01-06 11:08:38","37754.40123729563"),
@@ -67,8 +68,9 @@ def test_portfolio_from_statement_matches_platform_values(mocker):
     'DOGE': '126.32311693', 'FIDA': '30.066464',
     'SAND': '3.1751083', 'GAL': '1.19601431',
     'NEAR': '0.69916509', 'XCN': '66.94582892',
-    'TIME': '0.14772372', 'USDC': '0.14772372'
+    'TIME': '0.14772372', 'USDC': '0.175426'
   }
+
   for key,item in portfolio.getCryptosOwned().items():
     assert PortfolioHandler.roundCryptoQuantity(item) == platformValues[key]
 
@@ -142,5 +144,6 @@ if __name__ == '__main__':
   #test_evaluate_taxable_gains_year_full_string_int()
   #test_evaluate_taxable_gains_year_full()
   #test_evaluate_taxable_gains_year_empty()
+  test_portfolio_from_statement_matches_platform_values()
   pass
 # FOR LOCAL RUN
