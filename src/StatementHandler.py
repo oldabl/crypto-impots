@@ -34,7 +34,6 @@ class StatementHandler:
       self.gatherInformationFromStatement()
     
     # Sort out the statement lines gathered
-    self.removeUselessLines()
     self.uniqueLines()
     self.sortDateAscending()
 
@@ -147,19 +146,6 @@ class StatementHandler:
 
     # Make statement lines class member unique
     self.statementLines = uniqueStatementLines
-
-  # Role: remove useless lines in statement
-  def removeUselessLines(self):
-    index = 0
-    copyList = self.statementLines
-    for stl in copyList:
-      if not stl.isLineFormatValid() or not stl.isLineWorthSomething():
-        print("Remove line %d from statement lines", index)
-        del self.statementLines[index]
-      if stl.isDiscardPreviousLine():
-        print("Remove previous line %d from statement lines", index - 1)
-        del self.statementLines[index-1]
-      index = index + 1
 
   # Human readable class functions
   def __str__(self):
