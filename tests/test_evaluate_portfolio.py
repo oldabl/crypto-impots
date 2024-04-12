@@ -13,6 +13,7 @@ def makeFullPath(path):
 
 from StatementHandler import StatementHandler
 from PortfolioHandler import PortfolioHandler
+from PortfolioHelpers import PortfolioHelpers
 
 def test_portfolio_from_statement_matches_platform_values():
   print("test_portfolio_from_statement_matches_platform_values()")
@@ -33,7 +34,7 @@ def test_portfolio_from_statement_matches_platform_values():
     'TIME': '0.14772372', 'USDC': '0.175426'
   }
   for key,item in portfolio.getCryptosOwned().items():
-    assert PortfolioHandler.roundCryptoQuantity(item) == platformValues[key]
+    assert PortfolioHelpers.roundCryptoQuantity(item) == platformValues[key]
 
 def test_evaluate_taxable_gains():
   print("test_evaluate_taxable_gains_no_year()")
@@ -57,5 +58,5 @@ def test_evaluate_taxable_gains():
 # FOR LOCAL RUN
 if __name__ == '__main__':
   test_evaluate_taxable_gains()
-  # test_portfolio_from_statement_matches_platform_values()
+  test_portfolio_from_statement_matches_platform_values()
 # FOR LOCAL RUN

@@ -1,6 +1,7 @@
 import datetime, logging, multiprocessing, time
 from Exchange import CryptoExchange, CurrencyExchange
 from Defaults import Defaults
+from PortfolioHelpers import PortfolioHelpers
 from ProgressBar import ProgressBar
 
 # Class responsible for parsing and
@@ -132,21 +133,8 @@ class PortfolioHandler:
     if self.loadingBars:
       pr.join()
 
-  # Returns: the whole portfolio value owned
-  def portfolioValue(self, date, onlyBought=True):
-    cryptoRegistry = self.cryptosOwned
-    if onlyBought:
-      cryptoRegistry = self.cryptosBought
-
-    portfolioValue = 0
-    for (cryptoName,amount) in cryptoRegistry.items():
-      value = CryptoExchange.getCryptoValueAtDate(cryptoName, date)
-      portfolioValue += float(value)*amount
-    return portfolioValue
-
   # Role: go through portfolio to evaluate taxable gains
-  # - will print the portfolio composition if showPortfolio=True
-  def examinePortfolioForTaxableGains(self, showPortfolio=True):
+  def examinePortfolioForTaxableGains(self):
     pretext = "Examen des relevés".ljust(Defaults.PRETEXT_LENGTH)
     if self.loadingBars:
       progressbar = ProgressBar.ProgressBar(pretext=pretext,rightjustified=False)
@@ -209,7 +197,7 @@ class PortfolioHandler:
         if crypto == line.getSpotCurrency():
           continue
         date = line.getDate()
-        valuePortfolio = self.portfolioValue(date)
+        valuePortfolio = PortfolioHelpers.portfolioValue(self, date)
         percentageSold = line.getSubTotal()/valuePortfolio if valuePortfolio > 0 else 1
         percentageGains = valuePortfolio/self.amountInvested if self.amountInvested != 0 else valuePortfolio
         taxableGains = (valuePortfolio - self.amountInvested) * percentageSold
@@ -232,10 +220,6 @@ class PortfolioHandler:
     # Clean portfolio of useless values (like actual currency or 0)
     self.cleanPortfolioOfUselessKeys()
 
-    # Show portfolio if asked
-    if showPortfolio:
-      self.printCurrentPortfolioComposition()
-
   # Role: clean portfolio of default currency
   def cleanPortfolioOfUselessKeys(self):
     # Remove default currency
@@ -248,74 +232,3 @@ class PortfolioHandler:
         keysToDelete.append(key)
     for key in keysToDelete:
       del self.cryptosOwned[key]
-
-  # Role: print current portfolio composition
-  def printCurrentPortfolioComposition(self):
-    print("")
-    print("Votre portefeuille de crypto :")
-
-    # Will print over two columns
-    sameLine = 0
-    column = dict()
-    for key, item in self.cryptosOwned.items():
-      column[sameLine] = "- " + key.ljust(4) + ": " + PortfolioHandler.roundCryptoQuantity(item)
-      if sameLine == 1:
-        print('{0:30}  {1}'.format(column[0], column[1]))
-        time.sleep(0.05)
-      sameLine = (sameLine + 1) % 2
-
-  # Role: Print summary if the portfolio
-  #  was sold immediately
-  def printSummaryIfSoldRightNow(self):
-    now = datetime.datetime.now()# - datetime.timedelta(hours=8)
-
-    pretext = "Calcul plus-value si vente immédiate".ljust(Defaults.PRETEXT_LENGTH)
-    if self.loadingBars:
-      progressbar = ProgressBar.ProgressBar(pretext=pretext,rightjustified=False)
-      number = multiprocessing.Value("i", 0)
-      pr = multiprocessing.Process(target=progressbar.inThread, args=(number,4))
-      pr.start()
-    else:
-      print(pretext.strip()+"...")
-
-    if self.loadingBars:
-      number.value += 1
-    valuePortfolioOwned = self.portfolioValue(now, False)
-    if self.loadingBars:
-      number.value += 1
-    valuePortfolioBought = self.portfolioValue(now, True)
-    if self.loadingBars:
-      number.value += 1
-
-    percentageSold = 1 # 100%
-    percentageGains = valuePortfolioBought/self.amountInvested
-    taxableGains = (valuePortfolioBought - self.amountInvested) * percentageSold
-    if self.loadingBars:
-      number.value += 1
-      pr.join(1)
-
-    time.sleep(0.05)
-    print("- Valeur actuelle du portefeuille :\n   " + PortfolioHandler.roundCurrency(valuePortfolioOwned))
-    time.sleep(0.05)
-    print("- Valeur actuelle du portefeuille ramené aux achats :\n   " + PortfolioHandler.roundCurrency(valuePortfolioBought))
-    time.sleep(0.05)
-    print("- Montant investi à date :\n   " + PortfolioHandler.roundCurrency(self.amountInvested))
-    time.sleep(0.05)
-    print("- Plus-value à déclarer pour l'année en cours :\n   " + PortfolioHandler.roundCurrency(taxableGains))
-
-  # Role: prints a summary of taxable gains per year
-  def printSummaryPerYear(self):
-    print("Résumé par année : ")
-    for year, taxableGain in self.taxableGainsPerYear.items():
-      time.sleep(0.05)
-      print("- " + str(year) + " : plus-value imposable " + PortfolioHandler.roundCurrency(taxableGain) + " EUR")
-
-  # Round currency for printing (two decimals)
-  @staticmethod
-  def roundCurrency(amount):
-    return str(round(amount, 2))
-
-  # Round currency for printing (8 decimals)
-  @staticmethod
-  def roundCryptoQuantity(amount):
-    return str(round(amount, 8))
