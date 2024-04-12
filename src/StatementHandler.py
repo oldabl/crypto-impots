@@ -8,9 +8,13 @@ from CoinbaseLine import CoinbaseLine
 # an exchange platform CSV statement
 class StatementHandler:
 
+  statementLines = []
+
   # Constructor input:
   #  - path: path to statement file or folder
-  def __init__(self, path):
+  def __init__(self, path=None):
+    if not path:
+      return
 
     self.path = path
 

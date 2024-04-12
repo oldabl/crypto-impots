@@ -1,7 +1,6 @@
 # test_evaluate_portfolio.py
 
 import sys, os
-from unittest.mock import patch
 
 # FOR LOCAL RUN
 if __name__ == '__main__':
@@ -36,23 +35,23 @@ def test_portfolio_from_statement_matches_platform_values():
   for key,item in portfolio.getCryptosOwned().items():
     assert PortfolioHandler.roundCryptoQuantity(item) == platformValues[key]
 
-resultExpected = {2023: -0.8665641249477958, 2024: 891.8719901994936}
-@patch.object(PortfolioHandler, "taxableGainsPerYear", resultExpected)
 def test_evaluate_taxable_gains():
   print("test_evaluate_taxable_gains_no_year()")
-
-  sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
-  sth.uniqueLines()
-  sth.sortDateAscending()
   
-  portfolio = PortfolioHandler(sth, loadingBars=False)
+  portfolio = PortfolioHandler(StatementHandler(), loadingBars=False)
+
+  # For test
+  resultExpected = {2023: -0.8665641249477958, 2024: 891.8719901994936}
+  portfolio.taxableGainsPerYear = resultExpected
 
   assert type(portfolio.getTaxableGainsPerYear()) is dict
   assert type(portfolio.getTaxableGainsPerYear("")) is dict
   assert portfolio.getTaxableGainsPerYear("2023") == portfolio.getTaxableGainsPerYear(2023)
   assert portfolio.getTaxableGainsPerYear("HJBJK7") == portfolio.getTaxableGainsPerYear(2024)
   assert portfolio.getTaxableGainsPerYear(2022) == 0
+  print(portfolio.getTaxableGainsPerYear(2024))
   assert portfolio.getTaxableGainsPerYear(2024) == resultExpected[2024]
+  assert portfolio.getTaxableGainsPerYear(2023) == resultExpected[2023]
   assert portfolio.getTaxableGainsPerYear() == resultExpected
 
 # FOR LOCAL RUN

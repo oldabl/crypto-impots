@@ -239,7 +239,8 @@ class PortfolioHandler:
   # Role: clean portfolio of default currency
   def cleanPortfolioOfUselessKeys(self):
     # Remove default currency
-    del self.cryptosOwned[Defaults.CURRENCY]
+    if Defaults.CURRENCY in self.cryptosOwned:
+      del self.cryptosOwned[Defaults.CURRENCY]
     # Remove crypto whose quantity is 0
     keysToDelete = []
     for key, item in self.cryptosOwned.items():
