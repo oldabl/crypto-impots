@@ -8,19 +8,19 @@ from CoinbaseLine import CoinbaseLine
 # an exchange platform CSV statement
 class StatementHandler:
 
-  # Flag for if path passed to class 
-  #  is a directory
-  isDir = False
-
-  # Variable that will hold all statement lines
-  statementLines = []
-
   # Constructor input:
   #  - path: path to statement file or folder
   def __init__(self, path):
-    self.statementLines = []
-    self.isDIr = False
+
     self.path = path
+
+    # Variable that will hold all statement lines
+    self.statementLines = []
+
+    # Flag for if path passed to class 
+    #  is a directory
+    self.isDIr = False
+
     # Will check if path is valid
     self.checkPath()
 

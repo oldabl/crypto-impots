@@ -8,20 +8,21 @@ from ProgressBar import ProgressBar
 # an exchange platform CSV statement
 class PortfolioHandler:
 
-  # Dictionaries to count cryptos
-  cryptosBought = {}
-  cryptosOwned = {}
-
-  # Track amount invested and gains per year
-  amountInvested = 0
-  taxableGainsPerYear = {}
-
   # Constructor input:
   # - statement: StatementHandler object
   # - loadingBars: show progress bars
   def __init__(self, statement, loadingBars=True):
     self.loadingBars = loadingBars
     self.statement = statement
+
+    # Dictionaries to count cryptos
+    self.cryptosBought = {}
+    self.cryptosOwned = {}
+
+    # Track amount invested and gains per year
+    self.amountInvested = 0
+    self.taxableGainsPerYear = {}
+
     self.populateMissingInformation()
     self.examinePortfolioForTaxableGains()
 

@@ -15,15 +15,15 @@ class KrakenLine(StatementLine):
               'fee',
               'balance']
 
-  transactionId = None
-  asset = None
-  type = None
-  amount = None
-  cryptoFees = None
-
   # To set the line type before calling parent
   def __init__(self, textStatementLine, previousStatementLine=None):
     self.lineType = "Kraken"
+
+    # Extra Kraken attributes
+    self.transactionId = None
+    self.asset = self.type = None
+    self.amount = self.cryptoFees = None
+
     super().__init__(textStatementLine, previousStatementLine)
 
   # Basic attribute getters

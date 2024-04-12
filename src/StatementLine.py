@@ -13,28 +13,6 @@ from Defaults import Defaults
 
 class StatementLine:
 
-  # Attributes that class will attempt to extract
-  date = opType = crypto = None
-  quantity = spotCurrency = None
-  spotPrice = subTotal = None
-  fees = None
-  cryptoFees = 0.0
-
-  # Will store the subclass type
-  lineType = None
-
-  # For debug purposes, will store raw data
-  rawData = {}
-
-  # Flag for determining if line is valid
-  lineFormatValid = False
-  lineInformationComplete = False
-
-  # Flag for discarding lines if joined
-  #  with another line after analysis
-  lineWorthSomething = True
-  discardPreviousLine = False
-
   # Constructor inputs:
   #  - textStatementLine: current line processed
   #  - previousStatementLine: previous StatementLine already analysed
@@ -42,6 +20,29 @@ class StatementLine:
     self.textStatementLine = textStatementLine.strip()
     self.previousStatementLine = previousStatementLine
     logging.debug(self.textStatementLine)
+
+    # Attributes that class will attempt to extract
+    self.date = self.opType = self.crypto = None
+    self.quantity = self.spotCurrency = None
+    self.spotPrice = self.subTotal = None
+    self.fees = None
+    self.cryptoFees = 0.0
+
+    # Will store the subclass type
+    self.lineType = None
+
+    # For debug purposes, will store raw data
+    self.rawData = {}
+
+    # Flag for determining if line is valid
+    self.lineFormatValid = False
+    self.lineInformationComplete = False
+
+    # Flag for discarding lines if joined
+    #  with another line after analysis
+    self.lineWorthSomething = True
+    self.discardPreviousLine = False
+
     # Immediate call to extract information
     self.extractInformation()
 
