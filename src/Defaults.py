@@ -6,8 +6,8 @@ class Defaults:
   CURRENCY = "EUR"
   COMPATIBLE_PLATFORMS = ["Coinbase", "Kraken"]
 
-logging.basicConfig(filename="debug.log",
+logging.basicConfig(filename="info.log",
                     filemode="w",
                     datefmt="%Y-%m-%d %H:%M:%S",
-                    level=logging.DEBUG,
+                    level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(module)s:%(funcName)s: %(message)s')

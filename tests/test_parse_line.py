@@ -11,6 +11,7 @@ if __name__ == '__main__':
 from CoinbaseLine import CoinbaseLine
 
 def test_parse_coinbase_line():
+  print("test_parse_coinbase_line()")
   timestamp = "2024-03-26 23:12:03 UTC"
   trans_type = "Sell"
   asset = "FIDA"
@@ -33,7 +34,7 @@ def test_parse_coinbase_line():
   assert stl.getSpotPrice() == abs(float(spot_price_at_trans))
   assert stl.getSubTotal() == abs(float(subtotal))
   assert stl.getFees() == abs(float(fees))
-  assert stl.getCryptoFees() == 0.0
+  assert stl.getCryptoFees() == 0
 
 
 # FOR LOCAL RUN

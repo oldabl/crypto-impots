@@ -33,21 +33,22 @@ class PortfolioHandler:
     return self.cryptosOwned
   def getAmountInvested(self):
     return self.amountInvested
-  def getTaxableGainsPerYear(self):
-    return self.taxableGainsPerYear
 
   # Returns: the gain taxable for the year specified
   # If the year is invalid, return current tax year
-  def getTaxableGainsPerYear(self, year):
-    yearInt = datetime.date.today().year
+  def getTaxableGainsPerYear(self, year=None):
+    if not year:
+      return self.taxableGainsPerYear
+    currentYear = datetime.date.today().year
     try:
-      yearInt = int(year)
-      date = datetime.datetime(yearInt, 1, 1)
+      year = int(year)
+      date = datetime.datetime(year, 1, 1)
     except (Exception, ValueError):
-      print("'", year, "' is not a year, will return current tax year", yearInt)
+      print("'" + str(year) + "' is not a year, will return current tax year", currentYear)
+      year = currentYear
       logging.warning("Year not valid: %s", year)
-    if yearInt in self.taxableGainsPerYear.keys():
-      return self.taxableGainsPerYear[yearInt]
+    if year in self.taxableGainsPerYear.keys():
+      return self.taxableGainsPerYear[year]
     else:
       return 0
 
@@ -72,11 +73,11 @@ class PortfolioHandler:
     for line in self.statement.getStatementLines():
 
       # Track
-      i = i + 1
+      i += 1
 
       # Update progress bar
       if self.loadingBars:
-        number.value = number.value + 1
+        number.value += 1
 
       # Flag to know if the statement needs updated
       change = False
@@ -95,7 +96,6 @@ class PortfolioHandler:
 
         change = True
         cvad = CryptoExchange.getCryptoValueAtDate(line.getCrypto(), line.getDate())
-        logging.debug("Crypto value at date %s: %d", line.getDate(), cvad)
 
         # If missing default currency fees
         if line.getFees() == None and line.getCryptoFees() != None:
@@ -138,7 +138,7 @@ class PortfolioHandler:
     portfolioValue = 0
     for (cryptoName,amount) in cryptoRegistry.items():
       value = CryptoExchange.getCryptoValueAtDate(cryptoName, date)
-      portfolioValue = portfolioValue + float(value)*amount
+      portfolioValue += float(value)*amount
     return portfolioValue
 
   # Role: go through portfolio to evaluate taxable gains
@@ -157,7 +157,7 @@ class PortfolioHandler:
 
       # Update progress bar
       if self.loadingBars:
-        number.value = number.value + 1
+        number.value += 1
 
       # Only examine if line is worth something to us
       if not line.isLineWorthSomething():
@@ -169,22 +169,22 @@ class PortfolioHandler:
       if line.isInLine():
         crypto = line.getCrypto()
         if crypto not in self.cryptosOwned.keys():
-          self.cryptosOwned[crypto] = 0.0
-        self.cryptosOwned[crypto] = self.cryptosOwned[crypto] + line.getQuantity()
+          self.cryptosOwned[crypto] = 0
+        self.cryptosOwned[crypto] += line.getQuantity()
       #
       # Substract from cryptos owned
       if line.isOutLine():
         crypto = line.getCrypto()
         if crypto not in self.cryptosOwned.keys():
-          self.cryptosOwned[crypto] = 0.0
-        self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getQuantity()
+          self.cryptosOwned[crypto] = 0
+        self.cryptosOwned[crypto] -= line.getQuantity()
       #
       # Substract crypto fees from quantities owned
       if line.getCryptoFees() != None:
         crypto = line.getCrypto()
         if crypto not in self.cryptosOwned.keys():
-          self.cryptosOwned[crypto] = 0.0
-        self.cryptosOwned[crypto] = self.cryptosOwned[crypto] - line.getCryptoFees()
+          self.cryptosOwned[crypto] = 0
+        self.cryptosOwned[crypto] -= line.getCryptoFees()
       #
       # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -195,10 +195,10 @@ class PortfolioHandler:
       if line.isBuyLine():
         crypto = line.getCrypto()
         if crypto not in self.cryptosBought.keys():
-          self.cryptosBought[crypto] = 0.00
-        self.cryptosBought[crypto] = self.cryptosBought[crypto] + line.getQuantity()
+          self.cryptosBought[crypto] = 0
+        self.cryptosBought[crypto] += line.getQuantity()
 
-        self.amountInvested = self.amountInvested + line.getSubTotal()
+        self.amountInvested += line.getSubTotal()
       #
       # If selling crypto, remove part from amount invested and work out how much gains was made from the sale
       if line.isSellLine():
@@ -206,27 +206,21 @@ class PortfolioHandler:
         if crypto == line.getSpotCurrency():
           continue
         date = line.getDate()
-        #print("Vente de " + crypto + " en date du", date, ": ")
         valuePortfolio = self.portfolioValue(date)
         percentageSold = line.getSubTotal()/valuePortfolio if valuePortfolio > 0 else 1
-        percentagePlusValue = valuePortfolio/self.amountInvested if self.amountInvested != 0 else valuePortfolio
+        percentageGains = valuePortfolio/self.amountInvested if self.amountInvested != 0 else valuePortfolio
         taxableGains = (valuePortfolio - self.amountInvested) * percentageSold
-        #print("Montant investi à cette date : " + PortfolioHandler.roundCurrency(self.amountInvested) + " EUR")
-        #print("Valeur du portefeuille à cette date : " + PortfolioHandler.roundCurrency(valuePortfolio) + " EUR")
-        #print("Valeur en euros vendue : " + PortfolioHandler.roundCurrency(line.getSubTotal()) + " EUR")
-        #print("Plus value à déclarer : " + PortfolioHandler.roundCurrency(taxableGains) + " EUR")
-        #print()
-        if date.year not in self.taxableGainsPerYear.keys():
-          self.taxableGainsPerYear[date.year] = 0.00
-        self.taxableGainsPerYear[date.year] = self.taxableGainsPerYear[date.year] + taxableGains
 
+        if date.year not in self.taxableGainsPerYear.keys():
+          self.taxableGainsPerYear[date.year] = 0
+        self.taxableGainsPerYear[date.year] += taxableGains
 
         # Compute information to withdraw sold amount part in invested amount
-        toWithDrawFromAmountInvested = line.getSubTotal()/percentagePlusValue if percentagePlusValue > 0 else line.getSubTotal()
-        self.amountInvested = self.amountInvested - toWithDrawFromAmountInvested
+        toWithDrawFromAmountInvested = line.getSubTotal()/percentageGains if percentageGains > 0 else line.getSubTotal()
+        self.amountInvested -= toWithDrawFromAmountInvested
 
         # Remove crypto sold in owned crypto
-        self.cryptosBought[crypto] = self.cryptosBought[crypto] - line.getQuantity()
+        self.cryptosBought[crypto] -= line.getQuantity()
 
     # Stop progress bar
     if self.loadingBars:
@@ -246,7 +240,7 @@ class PortfolioHandler:
     # Remove crypto whose quantity is 0
     keysToDelete = []
     for key, item in self.cryptosOwned.items():
-      if item == 0.0:
+      if item == 0:
         keysToDelete.append(key)
     for key in keysToDelete:
       del self.cryptosOwned[key]
@@ -274,7 +268,7 @@ class PortfolioHandler:
     valuePortfolioBought = self.portfolioValue(now, True)
 
     percentageSold = 1 # 100%
-    percentagePlusValue = valuePortfolioBought/self.amountInvested
+    percentageGains = valuePortfolioBought/self.amountInvested
     taxableGains = (valuePortfolioBought - self.amountInvested) * percentageSold
 
     print("- Valeur actuelle du portefeuille :\n   " + PortfolioHandler.roundCurrency(valuePortfolioOwned))

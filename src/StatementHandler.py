@@ -153,10 +153,10 @@ class StatementHandler:
     firstLoop = True
     for stl in self.statementLines:
       if firstLoop:
-        printString = printString + str(stl)
+        printString += str(stl)
         firstLoop = False
       else:
-        printString = printString + "," + os.linesep + str(stl)
+        printString += "," + os.linesep + str(stl)
     printString = printString + "]"
     return printString
   def __repr__(self):

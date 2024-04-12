@@ -158,7 +158,7 @@ class KrakenLine(StatementLine):
                   'spotPrice': self.spotPrice,
                   'subTotal': self.subTotal,
                   'fees': self.fees,
-                  'cryptoFees': self.cryptoFees if self.cryptoFees != None else 0.0,
+                  'cryptoFees': self.cryptoFees if self.cryptoFees != None else 0,
                   'lineType': self.lineType
                 })
     return "Invalid statement line"

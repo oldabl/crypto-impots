@@ -26,7 +26,7 @@ class StatementLine:
     self.quantity = self.spotCurrency = None
     self.spotPrice = self.subTotal = None
     self.fees = None
-    self.cryptoFees = 0.0
+    self.cryptoFees = 0
 
     # Will store the subclass type
     self.lineType = None

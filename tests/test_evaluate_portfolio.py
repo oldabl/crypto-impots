@@ -15,45 +15,8 @@ from StatementHandler import StatementHandler
 from PortfolioHandler import PortfolioHandler
 from Exchange import CryptoExchange, CurrencyExchange
 
-result = {2023: -0.8665641249477958, 2024: 947.8437781903135}
-
 def test_portfolio_from_statement_matches_platform_values():
-  CryptoExchange.getCryptoValueAtDate = MagicMock(return_value=0)
-  arguments = [
-    ("ETH","2022-01-06 11:03:44","2943.619089703933"),
-    ("BTC","2022-01-06 11:08:38","37754.40123729563"),
-    ("LTC","2022-01-06 11:19:36","118.07335395492709"),
-    ("ETH","2022-01-06 14:33:40","2980.0132567388428"),
-    ("LTC","2022-01-06 14:36:38","118.51524524966858"),
-    ("BTC","2022-09-02 13:38:41","20048.939257480237"),
-    ("LTC","2022-09-02 13:40:49","57.32012408686081"),
-    ("ETH","2022-09-02 13:42:29","1590.1230861603124"),
-    ("FIDA","2022-09-02 13:46:01","0.41659161412989093"),
-    ("BTC","2022-09-02 13:50:00","20098.92424697288"),
-    ("LTC","2022-09-02 13:50:01","57.48523966776744"),
-    ("ETH","2022-09-02 13:50:02","1592.6798759131393")
-  ]
-  m = Mock()
-  side_effect = []
-  for arg in arguments:
-    side_effect.append(arg[2])
-  m.side_effect = side_effect
-  CurrencyExchange.convertCurrencyAmount = m
-  arguments = [
-    ("ETH","2022-01-06 11:03:44","2943.619089703933"),
-    ("BTC","2022-01-06 11:08:38","37754.40123729563"),
-    ("LTC","2022-01-06 11:19:36","118.07335395492709"),
-    ("ETH","2022-01-06 14:33:40","2980.0132567388428"),
-    ("LTC","2022-01-06 14:36:38","118.51524524966858"),
-    ("BTC","2022-09-02 13:38:41","20048.939257480237"),
-    ("LTC","2022-09-02 13:40:49","57.32012408686081"),
-    ("ETH","2022-09-02 13:42:29","1590.1230861603124"),
-    ("FIDA","2022-09-02 13:46:01","0.41659161412989093"),
-    ("BTC","2022-09-02 13:50:00","20098.92424697288"),
-    ("LTC","2022-09-02 13:50:01","57.48523966776744"),
-    ("ETH","2022-09-02 13:50:02","1592.6798759131393")
-  ]
-
+  print("test_portfolio_from_statement_matches_platform_values()")
   sth = StatementHandler(makeFullPath('test_files/statements/real/'))
 
   portfolio = PortfolioHandler(sth, loadingBars=False)
@@ -70,80 +33,29 @@ def test_portfolio_from_statement_matches_platform_values():
     'NEAR': '0.69916509', 'XCN': '66.94582892',
     'TIME': '0.14772372', 'USDC': '0.175426'
   }
-
   for key,item in portfolio.getCryptosOwned().items():
     assert PortfolioHandler.roundCryptoQuantity(item) == platformValues[key]
 
-def test_evaluate_taxable_gains_no_year(mocker):
-  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result)
-  
+def test_evaluate_taxable_gains():
+  print("test_evaluate_taxable_gains_no_year()")
   sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
   sth.uniqueLines()
   sth.sortDateAscending()
+
+  resultExpected = {2023: -0.8665641249477958, 2024: 891.8719901994936}
   
   portfolio = PortfolioHandler(sth, loadingBars=False)
-  #portfolio.examinePortfolioForTaxableGains()
 
-  assert portfolio.getTaxableGainsPerYear() == result
-  assert portfolio.getTaxableGainsPerYear("") == result
-
-def test_evaluate_taxable_gains_error_year(mocker):
-  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result)
-  
-  sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
-  sth.uniqueLines()
-  sth.sortDateAscending()
-  
-  portfolio = PortfolioHandler(sth, loadingBars=False)
-  #portfolio.examinePortfolioForTaxableGains()
-
-  assert portfolio.getTaxableGainsPerYear(10000000) == result
-  assert portfolio.getTaxableGainsPerYear("HJBJK7") == result
-
-def test_evaluate_taxable_gains_year_full_string_int(mocker):
-  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result[2023])
-  
-  sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
-  sth.uniqueLines()
-  sth.sortDateAscending()
-  
-  portfolio = PortfolioHandler(sth, loadingBars=False)
-  #portfolio.examinePortfolioForTaxableGains()
-
-  assert portfolio.getTaxableGainsPerYear("2023") == result[2023]
-  assert portfolio.getTaxableGainsPerYear(2023) == result[2023]
-
-def test_evaluate_taxable_gains_year_full(mocker):
-  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=result[2024])
-  
-  sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
-  sth.uniqueLines()
-  sth.sortDateAscending()
-  
-  portfolio = PortfolioHandler(sth, loadingBars=False)
-  #portfolio.examinePortfolioForTaxableGains()
-
-  assert portfolio.getTaxableGainsPerYear(2024) == result[2024]
-
-def test_evaluate_taxable_gains_year_empty(mocker):
-  mocker.patch('PortfolioHandler.PortfolioHandler.getTaxableGainsPerYear', return_value=0)
-  
-  sth = StatementHandler(makeFullPath('test_files/statements/portfolio_evaluation/portfoliostatement.csv'))
-  sth.uniqueLines()
-  sth.sortDateAscending()
-  
-  portfolio = PortfolioHandler(sth, loadingBars=False)
-  #portfolio.examinePortfolioForTaxableGains()
-
+  assert type(portfolio.getTaxableGainsPerYear()) is dict
+  assert type(portfolio.getTaxableGainsPerYear("")) is dict
+  assert portfolio.getTaxableGainsPerYear("2023") == portfolio.getTaxableGainsPerYear(2023)
+  assert portfolio.getTaxableGainsPerYear("HJBJK7") == portfolio.getTaxableGainsPerYear(2024)
   assert portfolio.getTaxableGainsPerYear(2022) == 0
+  assert portfolio.getTaxableGainsPerYear(2024) == resultExpected[2024]
+  assert portfolio.getTaxableGainsPerYear() == resultExpected
 
 # FOR LOCAL RUN
 if __name__ == '__main__':
-  #test_evaluate_taxable_gains_no_year()
-  #test_evaluate_taxable_gains_error_year()
-  #test_evaluate_taxable_gains_year_full_string_int()
-  #test_evaluate_taxable_gains_year_full()
-  #test_evaluate_taxable_gains_year_empty()
+  test_evaluate_taxable_gains()
   test_portfolio_from_statement_matches_platform_values()
-  pass
 # FOR LOCAL RUN
