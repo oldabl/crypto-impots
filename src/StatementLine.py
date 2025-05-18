@@ -57,6 +57,8 @@ class StatementLine:
     return self.discardPreviousLine
   def getDate(self):
     return self.date
+  def getStringDate(self):
+    return self.date.strftime("%Y-%m-%d %H:%M:%S")
   def getOpType(self):
     return self.opType
   def getCrypto(self):
