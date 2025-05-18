@@ -4,7 +4,8 @@ from StatementLine import StatementLine
 
 class CoinbaseLine(StatementLine):
 
-  listData = ['Timestamp',
+  listData = ['Transaction ID',
+              'Timestamp',
               'Transaction Type',
               'Asset',
               'Quantity Transacted',
@@ -44,11 +45,11 @@ class CoinbaseLine(StatementLine):
 
     # Look for information in line
     try:
-      self.date = datetime.datetime.strptime(c[0], "%Y-%m-%d %H:%M:%S %Z")
-      self.opType, self.crypto = str(c[1]), str(c[2])
-      self.quantity, self.spotCurrency = abs(float(c[3])), str(c[4])
-      self.spotPrice, self.subTotal = abs(float(c[5])), abs(float(c[6]))
-      self.totalWFees, self.fees = abs(float(c[7])), abs(float(c[8]))
+      self.date = datetime.datetime.strptime(c[1], "%Y-%m-%d %H:%M:%S %Z")
+      self.opType, self.crypto = str(c[2]), str(c[3])
+      self.quantity, self.spotCurrency = abs(float(c[4])), str(c[5])
+      self.spotPrice, self.subTotal = abs(float(c[6][1:])), abs(float(c[7][1:]))
+      self.totalWFees, self.fees = abs(float(c[8][1:])), abs(float(c[9][1:]))
     except Exception:
       self.setNothingValid()
       logging.debug("Couldn't extract information")

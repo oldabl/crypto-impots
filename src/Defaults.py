@@ -4,7 +4,7 @@ import logging
 # shared throughout the application
 class Defaults:
   CURRENCY = "EUR"
-  COMPATIBLE_PLATFORMS = ["Coinbase", "Kraken"]
+  COMPATIBLE_PLATFORMS = ["Coinbase"]
   PRETEXT_LENGTH = 37
 
 logging.basicConfig(filename="info.log",
