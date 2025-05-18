@@ -1,6 +1,5 @@
 import os, logging
 from Defaults import Defaults
-from KrakenLine import KrakenLine
 from CoinbaseLine import CoinbaseLine
 
 # Class responsible for parsing and
